@@ -3,22 +3,19 @@
 
 FROM node:20-alpine AS base
 RUN apk add --no-cache libc6-compat python3 make g++
-RUN npm install -g turbo pnpm
-
-FROM base AS pruner
-WORKDIR /app
-COPY . .
-ARG APP_NAME
-RUN turbo prune --scope=@bizbox/app-${APP_NAME} --docker
+RUN npm install -g turbo
 
 FROM base AS installer
 WORKDIR /app
-COPY --from=pruner /app/out/json/ .
-RUN pnpm install
-
-COPY --from=pruner /app/out/full/ .
+COPY . .
 ARG APP_NAME
-RUN turbo run build --filter=@bizbox/app-${APP_NAME}...
+
+# Install dependencies for the specific app using npm
+RUN npm config set registry https://registry.npmjs.org/ && \
+    cd apps/${APP_NAME} && npm install
+
+# Build the specific app
+RUN cd apps/${APP_NAME} && npm run build
 
 FROM base AS runner
 WORKDIR /app
