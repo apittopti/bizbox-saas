@@ -9,8 +9,9 @@ COPY packages/*/package.json ./packages/*/
 COPY packages/*/*/package.json ./packages/*/*/
 RUN --mount=type=cache,id=npm,target=/root/.npm \
     npm config set registry https://registry.npmjs.org/ && \
-    npm config set network-timeout 600000 && \
-    npm config set fetch-retries 10 && \
+    npm config set timeout 600000 && \
+    npm config set fetch-retry-mintimeout 10000 && \
+    npm config set fetch-retry-maxtimeout 60000 && \
     npm install --workspace=apps/super-admin --include-workspace-root
 
 FROM base AS build
