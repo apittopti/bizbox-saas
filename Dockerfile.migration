@@ -1,0 +1,150 @@
+FROM node:20-alpine AS base
+
+# Install dependencies only when needed
+FROM base AS deps
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+
+# Install pnpm
+RUN npm install -g pnpm@8.0.0
+
+# Copy workspace configuration
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml* ./
+COPY packages packages
+COPY turbo.json ./
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Migration image
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV production
+
+# Install pnpm
+RUN npm install -g pnpm@8.0.0
+
+# Copy dependencies and packages
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/packages ./packages
+COPY --from=deps /app/turbo.json ./turbo.json
+COPY tsconfig.json ./
+
+# Create migration script
+RUN mkdir -p scripts
+COPY <<EOF ./scripts/migrate.js
+const { Pool } = require('pg');
+
+async function migrate() {
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+  });
+
+  try {
+    console.log('🔄 Running database migrations...');
+    
+    // Create basic tables for BizBox multi-tenant platform
+    await pool.query(\`
+      CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+      
+      -- Users table
+      CREATE TABLE IF NOT EXISTS users (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password_hash VARCHAR(255),
+        name VARCHAR(255),
+        role VARCHAR(50) DEFAULT 'user',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+      
+      -- Tenants table
+      CREATE TABLE IF NOT EXISTS tenants (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        name VARCHAR(255) NOT NULL,
+        subdomain VARCHAR(100) UNIQUE NOT NULL,
+        owner_id UUID REFERENCES users(id),
+        settings JSONB DEFAULT '{}',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+      
+      -- Tenant users junction table
+      CREATE TABLE IF NOT EXISTS tenant_users (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        role VARCHAR(50) DEFAULT 'member',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(tenant_id, user_id)
+      );
+      
+      -- Pages table for website content
+      CREATE TABLE IF NOT EXISTS pages (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
+        title VARCHAR(255) NOT NULL,
+        slug VARCHAR(255) NOT NULL,
+        content JSONB DEFAULT '{}',
+        published BOOLEAN DEFAULT false,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(tenant_id, slug)
+      );
+      
+      -- Health check table
+      CREATE TABLE IF NOT EXISTS health_checks (
+        id SERIAL PRIMARY KEY,
+        service_name VARCHAR(100) NOT NULL,
+        status VARCHAR(20) NOT NULL,
+        checked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+      
+      -- Insert initial health check record
+      INSERT INTO health_checks (service_name, status) 
+      VALUES ('migration', 'completed') 
+      ON CONFLICT DO NOTHING;
+    \`);
+    
+    console.log('✅ Database migrations completed successfully!');
+    
+    // Test connection
+    const result = await pool.query('SELECT NOW() as current_time');
+    console.log('🔗 Database connection verified:', result.rows[0].current_time);
+    
+  } catch (error) {
+    console.error('❌ Migration failed:', error);
+    process.exit(1);
+  } finally {
+    await pool.end();
+  }
+}
+
+migrate();
+EOF
+
+# Health check script
+COPY <<EOF ./scripts/health-check.js
+const http = require('http');
+
+const server = http.createServer((req, res) => {
+  if (req.url === '/health') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ status: 'healthy', service: 'migration' }));
+  } else {
+    res.writeHead(404);
+    res.end('Not found');
+  }
+});
+
+const port = process.env.PORT || 3000;
+server.listen(port, () => {
+  console.log(\`Health check server running on port \${port}\`);
+});
+EOF
+
+# Install pg for database operations
+RUN pnpm add pg
+
+CMD ["node", "scripts/migrate.js"]

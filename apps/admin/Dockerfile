@@ -14,7 +14,7 @@ COPY packages packages
 COPY turbo.json ./
 
 # Install dependencies
-RUN pnpm install --frozen-lockfile
+RUN pnpm install
 
 # Build the application
 FROM base AS builder

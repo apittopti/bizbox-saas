@@ -1,0 +1,70 @@
+# Base Dockerfile for BizBox applications
+# Multi-stage build for optimal production images
+
+# Install dependencies only when needed
+FROM node:20-alpine AS deps
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+
+# Install pnpm
+RUN npm install -g pnpm@8.0.0
+
+# Copy workspace configuration
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml* ./
+COPY packages/shared packages/shared
+COPY packages/core packages/core
+COPY packages/tools packages/tools
+COPY packages/plugins packages/plugins
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile --prod=false
+
+# Build the application
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+# Install pnpm
+RUN npm install -g pnpm@8.0.0
+
+# Copy dependencies
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/packages ./packages
+
+# Copy configuration files
+COPY turbo.json tsconfig.json ./
+COPY .eslintrc.js .prettierrc .prettierignore ./
+
+# Copy the specific app (to be overridden in app-specific Dockerfiles)
+ARG APP_NAME
+COPY apps/${APP_NAME} apps/${APP_NAME}
+
+# Build the application and its dependencies
+RUN pnpm turbo build --filter=${APP_NAME}
+
+# Production image, copy all the files and run app
+FROM node:20-alpine AS runner
+WORKDIR /app
+
+# Create non-root user
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Copy built application
+COPY --from=builder /app/apps/${APP_NAME}/.next/standalone ./
+COPY --from=builder /app/apps/${APP_NAME}/.next/static ./apps/${APP_NAME}/.next/static
+COPY --from=builder /app/apps/${APP_NAME}/public ./apps/${APP_NAME}/public
+
+# Copy shared packages
+COPY --from=builder --chown=nextjs:nodejs /app/packages ./packages
+
+# Set correct permissions
+USER nextjs
+
+# Expose port
+EXPOSE 3000
+
+ENV PORT 3000
+ENV NODE_ENV production
+
+# Start the application
+CMD ["node", "apps/${APP_NAME}/server.js"]

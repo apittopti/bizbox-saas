@@ -1,5 +1,5 @@
 {
-  "name": "@bizbox/payments-plugin",
+  "name": "@bizbox/plugin-payments",
   "version": "1.0.0",
   "description": "BizBox Payments Plugin with Stripe Integration",
   "main": "dist/index.js",

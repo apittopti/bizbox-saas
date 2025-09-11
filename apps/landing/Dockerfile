@@ -13,8 +13,8 @@ COPY pnpm-workspace.yaml package.json pnpm-lock.yaml* ./
 COPY packages packages
 COPY turbo.json ./
 
-# Install dependencies
-RUN pnpm install --frozen-lockfile
+# Install dependencies (create lockfile if missing)
+RUN pnpm install
 
 # Build the application
 FROM base AS builder
