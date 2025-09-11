@@ -5,38 +5,22 @@ FROM base AS deps
 RUN apk add --no-cache libc6-compat python3 make g++
 WORKDIR /app
 
-# Copy package files
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
-COPY apps/tenant/package.json apps/tenant/
-COPY packages/shared/types/package.json packages/shared/types/
-COPY packages/shared/ui/package.json packages/shared/ui/
-COPY packages/shared/utils/package.json packages/shared/utils/
-COPY packages/shared/hooks/package.json packages/shared/hooks/
-COPY packages/core/auth/package.json packages/core/auth/
-COPY packages/core/api/package.json packages/core/api/
+# Copy all source files
+COPY . .
 
-# Copy source files for packages
-COPY packages packages
-COPY turbo.json ./
-
-# Install pnpm and dependencies (required for workspace: syntax)
-RUN npm install -g pnpm@8.0.0 && \
-    pnpm install --ignore-scripts || pnpm install --no-frozen-lockfile
+# Install dependencies using npm workspaces (fallback approach)
+RUN npm install --legacy-peer-deps --no-package-lock --prefer-offline || \
+    npm install --legacy-peer-deps --no-package-lock
 
 # Build the application
 FROM base AS builder
 WORKDIR /app
 
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/packages ./packages
-COPY --from=deps /app/turbo.json ./turbo.json
-COPY tsconfig.json ./
+# Copy everything from deps stage
+COPY --from=deps /app ./
 
-# Copy landing app source
-COPY apps/tenant apps/tenant
-
-# Build with pnpm scripts  
-RUN cd apps/tenant && pnpm build
+# Build the tenant app
+RUN cd apps/tenant && npm run build
 
 # Production image
 FROM base AS runner
