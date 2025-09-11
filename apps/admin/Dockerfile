@@ -7,20 +7,23 @@ WORKDIR /app
 FROM base AS deps
 COPY . .
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    pnpm config set registry https://registry.npmjs.org/ && \
+    apk add --no-cache curl && \
+    pnpm config set registry https://registry.npmmirror.com/ && \
     pnpm config set network-timeout 600000 && \
-    pnpm config set fetch-retries 5 && \
-    pnpm config set fetch-retry-mintimeout 20000 && \
-    pnpm config set fetch-retry-maxtimeout 120000 && \
-    pnpm install
+    pnpm config set fetch-retries 10 && \
+    pnpm config set fetch-retry-mintimeout 30000 && \
+    pnpm config set fetch-retry-maxtimeout 300000 && \
+    pnpm install --no-frozen-lockfile || \
+    (pnpm config set registry https://registry.npmjs.org/ && pnpm install --no-frozen-lockfile)
 
 FROM base AS build
 COPY . .
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    pnpm config set registry https://registry.npmjs.org/ && \
+    pnpm config set registry https://registry.npmmirror.com/ && \
     pnpm config set network-timeout 600000 && \
-    pnpm config set fetch-retries 5 && \
-    pnpm install
+    pnpm config set fetch-retries 10 && \
+    pnpm install --no-frozen-lockfile || \
+    (pnpm config set registry https://registry.npmjs.org/ && pnpm install --no-frozen-lockfile)
 
 # Build workspace packages first
 RUN pnpm turbo build --filter=@bizbox/shared-* --filter=@bizbox/core-* --filter=@bizbox/plugin-* || true
