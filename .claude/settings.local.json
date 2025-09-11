@@ -21,7 +21,10 @@
       "Bash(git push:*)",
       "Bash(npm install:*)",
       "Bash(pnpm install:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(for app in admin builder customer tenant super-admin)",
+      "Bash(do)",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": []
