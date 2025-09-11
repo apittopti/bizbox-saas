@@ -14,8 +14,7 @@ RUN turbo prune --scope=@bizbox/app-${APP_NAME} --docker
 FROM base AS installer
 WORKDIR /app
 COPY --from=pruner /app/out/json/ .
-COPY --from=pruner /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
-RUN pnpm install --no-frozen-lockfile
+RUN pnpm install
 
 COPY --from=pruner /app/out/full/ .
 ARG APP_NAME
