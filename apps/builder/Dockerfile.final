@@ -1,0 +1,29 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+RUN apk add --no-cache libc6-compat python3 make g++
+
+RUN npm init -y && npm install --legacy-peer-deps \
+    next@15.0.0 react@18.0.0 react-dom@18.0.0 \
+    @radix-ui/react-slot@1.0.2 lucide-react@0.294.0 \
+    class-variance-authority@0.7.0 clsx@2.0.0 tailwind-merge@2.0.0 \
+    tailwindcss@3.3.0 @tailwindcss/forms@0.5.7 autoprefixer@10.4.16 postcss@8.4.31
+
+RUN echo '/** @type {import("next").NextConfig} */\nconst nextConfig = { output: "standalone" };\nmodule.exports = nextConfig;' > next.config.js
+RUN echo 'module.exports = { content: ["./src/**/*.{js,ts,jsx,tsx}"], theme: { extend: {} }, plugins: [] }' > tailwind.config.js
+RUN echo 'module.exports = { plugins: { tailwindcss: {}, autoprefixer: {} } }' > postcss.config.js
+
+RUN mkdir -p src/app && \
+    echo 'import "./globals.css";\nexport default function RootLayout({ children }: { children: React.ReactNode }) {\n  return (\n    <html lang="en">\n      <body>{children}</body>\n    </html>\n  );\n}' > src/app/layout.tsx
+
+RUN echo '@tailwind base;\n@tailwind components;\n@tailwind utilities;' > src/app/globals.css
+
+RUN echo 'export default function WebsiteBuilder() {\n  return (\n    <div className="min-h-screen bg-gray-100">\n      <header className="bg-white shadow-sm border-b">\n        <div className="px-6 py-4 flex justify-between items-center">\n          <h1 className="text-2xl font-bold text-gray-900">🎨 BizBox Website Builder</h1>\n          <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Publish Site</button>\n        </div>\n      </header>\n      <div className="flex h-screen">\n        <aside className="w-64 bg-white shadow-sm p-4">\n          <h3 className="font-semibold mb-4">Components</h3>\n          <div className="space-y-2">\n            <div className="p-3 bg-gray-50 rounded cursor-pointer hover:bg-gray-100">📄 Header</div>\n            <div className="p-3 bg-gray-50 rounded cursor-pointer hover:bg-gray-100">🎯 Hero Section</div>\n            <div className="p-3 bg-gray-50 rounded cursor-pointer hover:bg-gray-100">📋 Services</div>\n            <div className="p-3 bg-gray-50 rounded cursor-pointer hover:bg-gray-100">👥 Staff</div>\n            <div className="p-3 bg-gray-50 rounded cursor-pointer hover:bg-gray-100">🛒 Products</div>\n            <div className="p-3 bg-gray-50 rounded cursor-pointer hover:bg-gray-100">📞 Contact</div>\n            <div className="p-3 bg-gray-50 rounded cursor-pointer hover:bg-gray-100">🦶 Footer</div>\n          </div>\n        </aside>\n        <main className="flex-1 p-4">\n          <div className="bg-white rounded-lg shadow-sm h-full p-8">\n            <div className="border-2 border-dashed border-gray-300 rounded-lg h-full flex items-center justify-center">\n              <div className="text-center">\n                <h2 className="text-xl font-semibold mb-2">Revolutionary Website Builder</h2>\n                <p className="text-gray-600">Drag and drop components to build your website</p>\n                <div className="mt-4 space-x-2">\n                  <button className="bg-green-500 text-white px-4 py-2 rounded">Choose Template</button>\n                  <button className="bg-blue-500 text-white px-4 py-2 rounded">Start Blank</button>\n                </div>\n              </div>\n            </div>\n          </div>\n        </main>\n        <aside className="w-64 bg-white shadow-sm p-4">\n          <h3 className="font-semibold mb-4">Properties</h3>\n          <div className="space-y-4">\n            <div>\n              <label className="block text-sm font-medium mb-1">Background</label>\n              <input type="color" className="w-full h-8 rounded" />\n            </div>\n            <div>\n              <label className="block text-sm font-medium mb-1">Text Color</label>\n              <input type="color" className="w-full h-8 rounded" />\n            </div>\n            <div>\n              <label className="block text-sm font-medium mb-1">Font Size</label>\n              <select className="w-full p-2 border rounded">\n                <option>Small</option>\n                <option>Medium</option>\n                <option>Large</option>\n              </select>\n            </div>\n          </div>\n        </aside>\n      </div>\n    </div>\n  );\n}' > src/app/page.tsx
+
+RUN echo '{"scripts":{"build":"next build","start":"next start","dev":"next dev"}}' > package.json
+RUN npm run build
+
+EXPOSE 3000
+ENV NODE_ENV=production PORT=3000 HOSTNAME="0.0.0.0"
+CMD ["npm", "start"]

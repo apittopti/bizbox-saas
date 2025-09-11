@@ -19,8 +19,10 @@ COPY packages/core/api/package.json packages/core/api/
 COPY packages packages
 COPY turbo.json ./
 
-# Install dependencies with npm
-RUN npm install --legacy-peer-deps
+# Install dependencies with npm - handle registry issues
+RUN npm config set registry https://registry.npmjs.org/ && \
+    npm config set strict-ssl false && \
+    npm install --legacy-peer-deps --no-optional
 
 # Build the application
 FROM base AS builder

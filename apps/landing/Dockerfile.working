@@ -1,0 +1,60 @@
+FROM node:20-alpine AS base
+
+# Install pnpm
+RUN npm install -g pnpm@8.0.0
+
+# Install dependencies
+FROM base AS deps
+RUN apk add --no-cache libc6-compat python3 make g++
+WORKDIR /app
+
+# Copy the root package.json and pnpm files
+COPY package.json pnpm-workspace.yaml ./
+COPY pnpm-lock.yaml* ./
+
+# Copy all package.json files to establish workspace structure
+COPY apps/landing/package.json apps/landing/
+COPY packages/shared/types/package.json packages/shared/types/
+COPY packages/shared/ui/package.json packages/shared/ui/
+COPY packages/shared/utils/package.json packages/shared/utils/
+COPY packages/shared/hooks/package.json packages/shared/hooks/
+COPY packages/core/auth/package.json packages/core/auth/
+COPY packages/core/api/package.json packages/core/api/
+COPY packages/plugins/community/package.json packages/plugins/community/
+COPY turbo.json ./
+
+# Install all dependencies using pnpm
+RUN pnpm install --frozen-lockfile
+
+# Build stage
+FROM base AS builder
+WORKDIR /app
+
+# Copy dependencies from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/pnpm-lock.yaml ./pnpm-lock.yaml
+
+# Copy source code
+COPY . .
+
+# Build the landing app specifically
+RUN pnpm --filter @bizbox/app-landing build
+
+# Production stage
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
+
+# Copy built application
+COPY --from=builder --chown=nextjs:nodejs /app/apps/landing/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/landing/.next/static ./apps/landing/.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/apps/landing/public ./apps/landing/public
+
+USER nextjs
+EXPOSE 3000
+ENV PORT=3000 HOSTNAME="0.0.0.0"
+
+CMD ["node", "apps/landing/server.js"]

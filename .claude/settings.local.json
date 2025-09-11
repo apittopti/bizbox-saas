@@ -26,7 +26,8 @@
       "Bash(do)",
       "Bash(done)",
       "Bash(sed:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(do cp apps/landing/Dockerfile apps/$app/Dockerfile)"
     ],
     "deny": [],
     "ask": []

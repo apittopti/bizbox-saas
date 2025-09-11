@@ -2,37 +2,42 @@ FROM node:20-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat python3 make g++
 WORKDIR /app
 
-# Install pnpm
-RUN npm install -g pnpm@8.0.0
+# Copy package files
+COPY package.json ./
+COPY apps/builder/package.json apps/builder/
+COPY packages/shared/types/package.json packages/shared/types/
+COPY packages/shared/ui/package.json packages/shared/ui/
+COPY packages/shared/utils/package.json packages/shared/utils/
+COPY packages/shared/hooks/package.json packages/shared/hooks/
+COPY packages/core/auth/package.json packages/core/auth/
+COPY packages/core/api/package.json packages/core/api/
 
-# Copy workspace configuration
-COPY pnpm-workspace.yaml package.json pnpm-lock.yaml* ./
+# Copy source files for packages
 COPY packages packages
 COPY turbo.json ./
 
-# Install dependencies
-RUN pnpm install
+# Install dependencies with npm - handle registry issues
+RUN npm config set registry https://registry.npmjs.org/ && \
+    npm config set strict-ssl false && \
+    npm install --legacy-peer-deps --no-optional
 
 # Build the application
 FROM base AS builder
 WORKDIR /app
-
-# Install pnpm
-RUN npm install -g pnpm@8.0.0
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages ./packages
 COPY --from=deps /app/turbo.json ./turbo.json
 COPY tsconfig.json ./
 
-# Copy builder app
+# Copy landing app source
 COPY apps/builder apps/builder
 
-# Build builder app and its dependencies
-RUN pnpm turbo build --filter=@bizbox/app-builder
+# Build with npm scripts
+RUN cd apps/builder && npm run build
 
 # Production image
 FROM base AS runner

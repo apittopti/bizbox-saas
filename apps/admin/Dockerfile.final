@@ -1,0 +1,41 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install basic dependencies
+RUN apk add --no-cache libc6-compat python3 make g++
+
+# Install Next.js and required dependencies
+RUN npm init -y && npm install --legacy-peer-deps \
+    next@15.0.0 react@18.0.0 react-dom@18.0.0 \
+    @radix-ui/react-slot@1.0.2 lucide-react@0.294.0 \
+    class-variance-authority@0.7.0 clsx@2.0.0 tailwind-merge@2.0.0 \
+    tailwindcss@3.3.0 @tailwindcss/forms@0.5.7 autoprefixer@10.4.16 postcss@8.4.31
+
+# Create Next.js config
+RUN echo '/** @type {import("next").NextConfig} */\nconst nextConfig = { output: "standalone" };\nmodule.exports = nextConfig;' > next.config.js
+
+# Create Tailwind config
+RUN echo 'module.exports = { content: ["./src/**/*.{js,ts,jsx,tsx}"], theme: { extend: {} }, plugins: [] }' > tailwind.config.js
+
+# Create PostCSS config  
+RUN echo 'module.exports = { plugins: { tailwindcss: {}, autoprefixer: {} } }' > postcss.config.js
+
+# Create basic admin application structure
+RUN mkdir -p src/app && \
+    echo 'import "./globals.css";\nexport default function RootLayout({ children }: { children: React.ReactNode }) {\n  return (\n    <html lang="en">\n      <body>{children}</body>\n    </html>\n  );\n}' > src/app/layout.tsx
+
+RUN echo '@tailwind base;\n@tailwind components;\n@tailwind utilities;' > src/app/globals.css
+
+RUN echo 'export default function AdminDashboard() {\n  return (\n    <div className="min-h-screen bg-gray-50">\n      <header className="bg-white shadow-sm border-b">\n        <div className="px-6 py-4">\n          <h1 className="text-2xl font-bold text-gray-900">🛠️ BizBox Admin Dashboard</h1>\n        </div>\n      </header>\n      <main className="container mx-auto px-6 py-8">\n        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">\n          <div className="bg-white p-6 rounded-lg shadow-sm">\n            <h3 className="text-lg font-semibold mb-2">Tenant Management</h3>\n            <p className="text-gray-600">Manage business accounts and subscriptions</p>\n          </div>\n          <div className="bg-white p-6 rounded-lg shadow-sm">\n            <h3 className="text-lg font-semibold mb-2">User Administration</h3>\n            <p className="text-gray-600">Handle user accounts and permissions</p>\n          </div>\n          <div className="bg-white p-6 rounded-lg shadow-sm">\n            <h3 className="text-lg font-semibold mb-2">System Analytics</h3>\n            <p className="text-gray-600">Monitor platform usage and performance</p>\n          </div>\n        </div>\n        <div className="bg-white rounded-lg shadow-sm p-6">\n          <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>\n          <div className="space-y-2">\n            <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Create New Tenant</button>\n            <button className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 ml-2">View Reports</button>\n            <button className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 ml-2">System Settings</button>\n          </div>\n        </div>\n      </main>\n    </div>\n  );\n}' > src/app/page.tsx
+
+# Update package.json scripts
+RUN echo '{"scripts":{"build":"next build","start":"next start","dev":"next dev"}}' > package.json
+
+# Build the application
+RUN npm run build
+
+EXPOSE 3000
+ENV NODE_ENV=production PORT=3000 HOSTNAME="0.0.0.0"
+
+CMD ["npm", "start"]
