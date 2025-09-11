@@ -1,0 +1,951 @@
+/**
+ * BizBox Widgets Base Styles
+ * 
+ * This file contains the core styles for all BizBox widgets.
+ * It provides a consistent foundation while allowing for theme customization.
+ */
+
+/* CSS Reset for widget containers */
+.bizbox-widget {
+  box-sizing: border-box;
+  font-family: var(--bx-font-family, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif);
+  font-size: var(--bx-font-size, 14px);
+  line-height: 1.5;
+  color: var(--bx-text, #111827);
+  background: var(--bx-background, #ffffff);
+  border-radius: var(--bx-radius, 8px);
+  position: relative;
+  overflow: hidden;
+}
+
+.bizbox-widget *,
+.bizbox-widget *::before,
+.bizbox-widget *::after {
+  box-sizing: border-box;
+}
+
+/* Loading states */
+.bizbox-widget.bizbox-loading {
+  min-height: 100px;
+}
+
+.bizbox-loading-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 10;
+}
+
+.bizbox-spinner {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--bx-border, #e5e7eb);
+  border-radius: 50%;
+  border-top-color: var(--bx-primary, #3b82f6);
+  animation: bizbox-spin 1s linear infinite;
+}
+
+.bizbox-loading-text {
+  margin-top: var(--bx-spacing-sm, 0.5rem);
+  font-size: 12px;
+  color: var(--bx-secondary, #6b7280);
+}
+
+@keyframes bizbox-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Error states */
+.bizbox-error {
+  padding: var(--bx-spacing-md, 1rem);
+  border: 1px solid #fee2e2;
+  border-radius: var(--bx-radius, 8px);
+  background: #fef2f2;
+  color: #991b1b;
+  text-align: center;
+}
+
+.bizbox-error__icon {
+  font-size: 24px;
+  margin-bottom: var(--bx-spacing-sm, 0.5rem);
+}
+
+.bizbox-error__message {
+  margin-bottom: var(--bx-spacing-md, 1rem);
+  font-weight: 500;
+}
+
+.bizbox-error__retry {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: var(--bx-spacing-sm, 0.5rem) var(--bx-spacing-md, 1rem);
+  border-radius: calc(var(--bx-radius, 8px) * 0.5);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.bizbox-error__retry:hover {
+  background: #b91c1c;
+}
+
+/* Common form elements */
+.bizbox-widget input,
+.bizbox-widget textarea,
+.bizbox-widget select {
+  width: 100%;
+  padding: var(--bx-spacing-sm, 0.5rem) var(--bx-spacing-md, 1rem);
+  border: 1px solid var(--bx-border, #e5e7eb);
+  border-radius: var(--bx-radius, 8px);
+  font-family: inherit;
+  font-size: inherit;
+  background: var(--bx-background, #ffffff);
+  color: var(--bx-text, #111827);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.bizbox-widget input:focus,
+.bizbox-widget textarea:focus,
+.bizbox-widget select:focus {
+  outline: none;
+  border-color: var(--bx-primary, #3b82f6);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.bizbox-widget input:disabled,
+.bizbox-widget textarea:disabled,
+.bizbox-widget select:disabled {
+  background: #f9fafb;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* Common button styles */
+.bizbox-widget button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--bx-spacing-sm, 0.5rem) var(--bx-spacing-md, 1rem);
+  border: 1px solid transparent;
+  border-radius: var(--bx-radius, 8px);
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  min-height: 40px;
+}
+
+.bizbox-widget button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Primary buttons */
+.bizbox-widget .bizbox-btn-primary {
+  background: var(--bx-primary, #3b82f6);
+  color: white;
+}
+
+.bizbox-widget .bizbox-btn-primary:hover:not(:disabled) {
+  background: var(--bx-primary-hover, #2563eb);
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+
+/* Secondary buttons */
+.bizbox-widget .bizbox-btn-secondary {
+  background: transparent;
+  color: var(--bx-primary, #3b82f6);
+  border-color: var(--bx-primary, #3b82f6);
+}
+
+.bizbox-widget .bizbox-btn-secondary:hover:not(:disabled) {
+  background: var(--bx-primary, #3b82f6);
+  color: white;
+}
+
+/* Common grid layouts */
+.bizbox-grid {
+  display: grid;
+  gap: var(--bx-spacing-md, 1rem);
+}
+
+.bizbox-grid--2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.bizbox-grid--3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.bizbox-grid--4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* BOOKING WIDGET STYLES */
+.bizbox-booking {
+  padding: var(--bx-spacing-lg, 1.5rem);
+}
+
+.bizbox-booking__progress {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--bx-spacing-lg, 1.5rem);
+  padding-bottom: var(--bx-spacing-md, 1rem);
+  border-bottom: 1px solid var(--bx-border, #e5e7eb);
+}
+
+.bizbox-booking__step {
+  flex: 1;
+  text-align: center;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.bizbox-booking__step--active,
+.bizbox-booking__step--completed {
+  opacity: 1;
+}
+
+.bizbox-booking__step--completed {
+  color: var(--bx-primary, #3b82f6);
+}
+
+.bizbox-booking__step-icon {
+  font-size: 24px;
+  margin-bottom: var(--bx-spacing-xs, 0.25rem);
+}
+
+.bizbox-booking__step-label {
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.bizbox-booking__title {
+  margin: 0 0 var(--bx-spacing-lg, 1.5rem) 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--bx-text, #111827);
+}
+
+.bizbox-booking__back-btn {
+  background: transparent;
+  color: var(--bx-secondary, #6b7280);
+  border: none;
+  padding: var(--bx-spacing-sm, 0.5rem) 0;
+  margin-bottom: var(--bx-spacing-md, 1rem);
+  font-size: 14px;
+}
+
+.bizbox-booking__back-btn:hover {
+  color: var(--bx-primary, #3b82f6);
+}
+
+.bizbox-booking__services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--bx-spacing-md, 1rem);
+}
+
+.bizbox-booking__service-card {
+  border: 1px solid var(--bx-border, #e5e7eb);
+  border-radius: var(--bx-radius, 8px);
+  padding: var(--bx-spacing-md, 1rem);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.bizbox-booking__service-card:hover {
+  border-color: var(--bx-primary, #3b82f6);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.bizbox-booking__service-image {
+  text-align: center;
+  font-size: 48px;
+  margin-bottom: var(--bx-spacing-md, 1rem);
+}
+
+.bizbox-booking__service-image img {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: var(--bx-radius, 8px);
+}
+
+.bizbox-booking__service-name {
+  margin: 0 0 var(--bx-spacing-sm, 0.5rem) 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.bizbox-booking__service-description {
+  margin: 0 0 var(--bx-spacing-md, 1rem) 0;
+  color: var(--bx-secondary, #6b7280);
+  font-size: 14px;
+}
+
+.bizbox-booking__service-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+.bizbox-booking__service-duration {
+  color: var(--bx-secondary, #6b7280);
+}
+
+.bizbox-booking__service-price {
+  font-weight: 600;
+  color: var(--bx-primary, #3b82f6);
+}
+
+.bizbox-booking__staff-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--bx-spacing-md, 1rem);
+}
+
+.bizbox-booking__staff-card {
+  border: 1px solid var(--bx-border, #e5e7eb);
+  border-radius: var(--bx-radius, 8px);
+  padding: var(--bx-spacing-md, 1rem);
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.bizbox-booking__staff-card:hover {
+  border-color: var(--bx-primary, #3b82f6);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.bizbox-booking__staff-image {
+  font-size: 48px;
+  margin-bottom: var(--bx-spacing-sm, 0.5rem);
+}
+
+.bizbox-booking__staff-image img {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.bizbox-booking__datetime-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--bx-spacing-lg, 1.5rem);
+}
+
+.bizbox-booking__calendar {
+  border: 1px solid var(--bx-border, #e5e7eb);
+  border-radius: var(--bx-radius, 8px);
+  overflow: hidden;
+}
+
+.bizbox-booking__calendar-header {
+  background: var(--bx-primary, #3b82f6);
+  color: white;
+  padding: var(--bx-spacing-md, 1rem);
+  text-align: center;
+}
+
+.bizbox-booking__calendar-month {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.bizbox-booking__calendar-days-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: #f9fafb;
+  border-bottom: 1px solid var(--bx-border, #e5e7eb);
+}
+
+.bizbox-booking__calendar-day-name {
+  padding: var(--bx-spacing-sm, 0.5rem);
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--bx-secondary, #6b7280);
+}
+
+.bizbox-booking__calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.bizbox-booking__calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid var(--bx-border, #e5e7eb);
+  border-bottom: 1px solid var(--bx-border, #e5e7eb);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+
+.bizbox-booking__calendar-day:hover:not(.bizbox-booking__calendar-day--disabled) {
+  background: var(--bx-primary, #3b82f6);
+  color: white;
+}
+
+.bizbox-booking__calendar-day--selected {
+  background: var(--bx-primary, #3b82f6) !important;
+  color: white;
+  font-weight: 600;
+}
+
+.bizbox-booking__calendar-day--disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.bizbox-booking__calendar-day--other-month {
+  opacity: 0.5;
+}
+
+.bizbox-booking__time-slots-title {
+  margin: 0 0 var(--bx-spacing-md, 1rem) 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.bizbox-booking__time-slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--bx-spacing-sm, 0.5rem);
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.bizbox-booking__time-slot {
+  padding: var(--bx-spacing-sm, 0.5rem);
+  border: 1px solid var(--bx-border, #e5e7eb);
+  border-radius: calc(var(--bx-radius, 8px) * 0.5);
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 13px;
+  text-align: center;
+}
+
+.bizbox-booking__time-slot:hover {
+  border-color: var(--bx-primary, #3b82f6);
+  background: var(--bx-primary, #3b82f6);
+  color: white;
+}
+
+.bizbox-booking__time-slot-price {
+  display: block;
+  font-size: 11px;
+  margin-top: 2px;
+  opacity: 0.8;
+}
+
+.bizbox-booking__no-slots {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--bx-secondary, #6b7280);
+  padding: var(--bx-spacing-lg, 1.5rem);
+}
+
+.bizbox-booking__summary {
+  background: #f9fafb;
+  border: 1px solid var(--bx-border, #e5e7eb);
+  border-radius: var(--bx-radius, 8px);
+  padding: var(--bx-spacing-md, 1rem);
+  margin-bottom: var(--bx-spacing-lg, 1.5rem);
+}
+
+.bizbox-booking__summary h4 {
+  margin: 0 0 var(--bx-spacing-sm, 0.5rem) 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.bizbox-booking__summary p {
+  margin: 0 0 var(--bx-spacing-xs, 0.25rem) 0;
+  font-size: 14px;
+}
+
+.bizbox-booking__form-group {
+  margin-bottom: var(--bx-spacing-md, 1rem);
+}
+
+.bizbox-booking__form-group label {
+  display: block;
+  margin-bottom: var(--bx-spacing-xs, 0.25rem);
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.bizbox-booking__submit-btn {
+  width: 100%;
+  background: var(--bx-primary, #3b82f6);
+  color: white;
+  font-weight: 600;
+  padding: var(--bx-spacing-md, 1rem);
+}
+
+.bizbox-booking__submit-btn:hover:not(:disabled) {
+  background: var(--bx-primary-hover, #2563eb);
+}
+
+.bizbox-booking__confirmation {
+  text-align: center;
+  padding: var(--bx-spacing-xl, 2rem);
+}
+
+.bizbox-booking__confirmation-icon {
+  font-size: 64px;
+  margin-bottom: var(--bx-spacing-md, 1rem);
+}
+
+.bizbox-booking__new-booking-btn {
+  margin-top: var(--bx-spacing-lg, 1.5rem);
+  background: var(--bx-primary, #3b82f6);
+  color: white;
+}
+
+/* PRODUCT CATALOG WIDGET STYLES */
+.bizbox-product-catalog {
+  padding: var(--bx-spacing-lg, 1.5rem);
+}
+
+.bizbox-product-catalog__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--bx-spacing-lg, 1.5rem);
+  padding-bottom: var(--bx-spacing-md, 1rem);
+  border-bottom: 1px solid var(--bx-border, #e5e7eb);
+}
+
+.bizbox-product-catalog__search {
+  flex: 1;
+  max-width: 300px;
+}
+
+.bizbox-product-catalog__cart-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--bx-spacing-md, 1rem);
+  background: #f9fafb;
+  border: 1px solid var(--bx-border, #e5e7eb);
+  border-radius: var(--bx-radius, 8px);
+  padding: var(--bx-spacing-sm, 0.5rem) var(--bx-spacing-md, 1rem);
+  margin-bottom: var(--bx-spacing-lg, 1.5rem);
+}
+
+.bizbox-product-catalog__cart-info {
+  display: flex;
+  align-items: center;
+  gap: var(--bx-spacing-md, 1rem);
+  font-size: 14px;
+}
+
+.bizbox-product-catalog__cart-count {
+  font-weight: 500;
+}
+
+.bizbox-product-catalog__cart-total {
+  color: var(--bx-primary, #3b82f6);
+  font-weight: 600;
+}
+
+.bizbox-product-catalog__checkout-btn {
+  background: var(--bx-primary, #3b82f6);
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.bizbox-product-catalog__grid {
+  display: grid;
+  gap: var(--bx-spacing-lg, 1.5rem);
+}
+
+.bizbox-product-catalog__grid--grid {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.bizbox-product-catalog__grid--list {
+  grid-template-columns: 1fr;
+}
+
+.bizbox-product-catalog__product-card {
+  border: 1px solid var(--bx-border, #e5e7eb);
+  border-radius: var(--bx-radius, 8px);
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+
+.bizbox-product-catalog__product-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.bizbox-product-catalog__product-image {
+  position: relative;
+  aspect-ratio: 4/3;
+  background: #f9fafb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  overflow: hidden;
+}
+
+.bizbox-product-catalog__product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bizbox-product-catalog__out-of-stock {
+  position: absolute;
+  top: var(--bx-spacing-sm, 0.5rem);
+  right: var(--bx-spacing-sm, 0.5rem);
+  background: #ef4444;
+  color: white;
+  padding: var(--bx-spacing-xs, 0.25rem) var(--bx-spacing-sm, 0.5rem);
+  border-radius: calc(var(--bx-radius, 8px) * 0.5);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.bizbox-product-catalog__product-info {
+  padding: var(--bx-spacing-md, 1rem);
+}
+
+.bizbox-product-catalog__product-name {
+  margin: 0 0 var(--bx-spacing-sm, 0.5rem) 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.bizbox-product-catalog__product-description {
+  margin: 0 0 var(--bx-spacing-md, 1rem) 0;
+  color: var(--bx-secondary, #6b7280);
+  font-size: 14px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.bizbox-product-catalog__product-price {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--bx-primary, #3b82f6);
+  margin-bottom: var(--bx-spacing-md, 1rem);
+}
+
+.bizbox-product-catalog__product-variants {
+  margin-bottom: var(--bx-spacing-md, 1rem);
+}
+
+.bizbox-product-catalog__variant-select {
+  font-size: 14px;
+}
+
+.bizbox-product-catalog__add-to-cart-btn {
+  width: 100%;
+  background: var(--bx-primary, #3b82f6);
+  color: white;
+  font-weight: 500;
+}
+
+.bizbox-product-catalog__quantity-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--bx-spacing-sm, 0.5rem);
+}
+
+.bizbox-product-catalog__quantity-btn {
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  border: 1px solid var(--bx-border, #e5e7eb);
+  background: white;
+  color: var(--bx-text, #111827);
+  font-weight: 600;
+  padding: 0;
+}
+
+.bizbox-product-catalog__quantity {
+  font-weight: 600;
+  min-width: 24px;
+  text-align: center;
+}
+
+.bizbox-product-catalog__empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: var(--bx-spacing-xl, 2rem);
+  color: var(--bx-secondary, #6b7280);
+}
+
+.bizbox-product-catalog__empty-icon {
+  font-size: 64px;
+  margin-bottom: var(--bx-spacing-md, 1rem);
+}
+
+.bizbox-product-catalog__pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--bx-spacing-sm, 0.5rem);
+  margin-top: var(--bx-spacing-lg, 1.5rem);
+}
+
+.bizbox-product-catalog__page-btn {
+  min-width: 40px;
+  height: 40px;
+  border: 1px solid var(--bx-border, #e5e7eb);
+  background: white;
+  color: var(--bx-text, #111827);
+  font-size: 14px;
+}
+
+.bizbox-product-catalog__page-btn--active {
+  background: var(--bx-primary, #3b82f6);
+  color: white;
+  border-color: var(--bx-primary, #3b82f6);
+}
+
+.bizbox-product-catalog__page-btn--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* CONTACT FORM WIDGET STYLES */
+.bizbox-contact-form {
+  padding: var(--bx-spacing-lg, 1.5rem);
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.bizbox-contact-form__header {
+  text-align: center;
+  margin-bottom: var(--bx-spacing-lg, 1.5rem);
+}
+
+.bizbox-contact-form__title {
+  margin: 0 0 var(--bx-spacing-sm, 0.5rem) 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--bx-text, #111827);
+}
+
+.bizbox-contact-form__subtitle {
+  margin: 0;
+  color: var(--bx-secondary, #6b7280);
+  font-size: 16px;
+}
+
+.bizbox-contact-form__form-group {
+  margin-bottom: var(--bx-spacing-md, 1rem);
+}
+
+.bizbox-contact-form__label {
+  display: block;
+  margin-bottom: var(--bx-spacing-xs, 0.25rem);
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--bx-text, #111827);
+}
+
+.bizbox-contact-form__input,
+.bizbox-contact-form__textarea,
+.bizbox-contact-form__select {
+  width: 100%;
+  min-height: 44px;
+  font-size: 16px;
+}
+
+.bizbox-contact-form__textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.bizbox-contact-form__input--error,
+.bizbox-contact-form__textarea--error,
+.bizbox-contact-form__select--error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.bizbox-contact-form__error {
+  display: none;
+  margin-top: var(--bx-spacing-xs, 0.25rem);
+  font-size: 12px;
+  color: #ef4444;
+}
+
+.bizbox-contact-form__button-container {
+  margin-top: var(--bx-spacing-lg, 1.5rem);
+}
+
+.bizbox-contact-form__submit-btn {
+  width: 100%;
+  background: var(--bx-primary, #3b82f6);
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+  min-height: 48px;
+}
+
+.bizbox-contact-form__submit-btn:hover:not(:disabled) {
+  background: var(--bx-primary-hover, #2563eb);
+}
+
+.bizbox-contact-form__submit-spinner {
+  align-items: center;
+  gap: var(--bx-spacing-sm, 0.5rem);
+}
+
+.bizbox-contact-form__success {
+  text-align: center;
+  padding: var(--bx-spacing-xl, 2rem);
+}
+
+.bizbox-contact-form__success-icon {
+  font-size: 64px;
+  margin-bottom: var(--bx-spacing-md, 1rem);
+}
+
+.bizbox-contact-form__success-title {
+  margin: 0 0 var(--bx-spacing-md, 1rem) 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #059669;
+}
+
+.bizbox-contact-form__success-message {
+  margin: 0 0 var(--bx-spacing-lg, 1.5rem) 0;
+  color: var(--bx-secondary, #6b7280);
+}
+
+.bizbox-contact-form__new-message-btn {
+  background: var(--bx-primary, #3b82f6);
+  color: white;
+  font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .bizbox-widget {
+    font-size: 16px; /* Larger font size for mobile */
+  }
+
+  .bizbox-booking__progress {
+    flex-direction: column;
+    gap: var(--bx-spacing-sm, 0.5rem);
+  }
+
+  .bizbox-booking__step {
+    display: flex;
+    align-items: center;
+    gap: var(--bx-spacing-sm, 0.5rem);
+  }
+
+  .bizbox-booking__step-icon {
+    margin-bottom: 0;
+    font-size: 20px;
+  }
+
+  .bizbox-booking__services-grid,
+  .bizbox-booking__staff-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bizbox-booking__datetime-container {
+    grid-template-columns: 1fr;
+  }
+
+  .bizbox-booking__calendar-days {
+    font-size: 12px;
+  }
+
+  .bizbox-booking__time-slots {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  }
+
+  .bizbox-product-catalog__header {
+    flex-direction: column;
+    gap: var(--bx-spacing-md, 1rem);
+    align-items: stretch;
+  }
+
+  .bizbox-product-catalog__search {
+    max-width: none;
+  }
+
+  .bizbox-product-catalog__grid--grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bizbox-product-catalog__cart-summary {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .bizbox-product-catalog__pagination {
+    flex-wrap: wrap;
+  }
+
+  .bizbox-contact-form {
+    padding: var(--bx-spacing-md, 1rem);
+  }
+}
+
+@media (max-width: 480px) {
+  .bizbox-booking__progress {
+    display: none; /* Hide progress on very small screens */
+  }
+
+  .bizbox-booking__calendar-day {
+    font-size: 12px;
+  }
+
+  .bizbox-booking__time-slots {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Print styles */
+@media print {
+  .bizbox-widget {
+    box-shadow: none !important;
+    border: 1px solid #000 !important;
+  }
+
+  .bizbox-widget button {
+    display: none !important;
+  }
+
+  .bizbox-booking__progress,
+  .bizbox-product-catalog__cart-summary {
+    display: none !important;
+  }
+}

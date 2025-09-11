@@ -1,0 +1,30 @@
+{
+  "name": "@bizbox/shared-hooks",
+  "version": "1.0.0",
+  "description": "BizBox shared React hooks",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "lint": "eslint src --ext .ts,.tsx",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@bizbox/shared-types": "workspace:*",
+    "react": "^18.0.0"
+  },
+  "devDependencies": {
+    "@bizbox/eslint-config": "workspace:*",
+    "@bizbox/typescript-config": "workspace:*",
+    "@types/react": "^18.0.0",
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Next.js",
+  "extends": "./base.json",
+  "compilerOptions": {
+    "target": "es5",
+    "lib": ["dom", "dom.iterable", "es6"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@bizbox/core-framework": ["../../packages/core/framework/src"],
+      "@bizbox/core-database": ["../../packages/core/database/src"],
+      "@bizbox/core-auth": ["../../packages/core/auth/src"],
+      "@bizbox/core-api": ["../../packages/core/api/src"],
+      "@bizbox/plugin-booking": ["../../packages/plugins/booking/src"],
+      "@bizbox/plugin-ecommerce": ["../../packages/plugins/ecommerce/src"],
+      "@bizbox/plugin-website-builder": ["../../packages/plugins/website-builder/src"],
+      "@bizbox/plugin-media-manager": ["../../packages/plugins/media-manager/src"],
+      "@bizbox/plugin-community": ["../../packages/plugins/community/src"],
+      "@bizbox/plugin-payments": ["../../packages/plugins/payments/src"],
+      "@bizbox/shared-types": ["../../packages/shared/types/src"],
+      "@bizbox/shared-ui": ["../../packages/shared/ui/src"],
+      "@bizbox/shared-utils": ["../../packages/shared/utils/src"],
+      "@bizbox/shared-hooks": ["../../packages/shared/hooks/src"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}

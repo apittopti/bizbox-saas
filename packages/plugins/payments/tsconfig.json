@@ -1,0 +1,39 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "composite": true,
+    "baseUrl": ".",
+    "paths": {
+      "@bizbox/core/*": ["../../core/*/src"],
+      "@bizbox/shared/*": ["../../shared/*/src"]
+    }
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "dist",
+    "node_modules",
+    "**/*.test.ts",
+    "**/*.spec.ts"
+  ],
+  "references": [
+    {
+      "path": "../../core/framework"
+    },
+    {
+      "path": "../../core/auth"
+    },
+    {
+      "path": "../../core/api"
+    },
+    {
+      "path": "../../shared/types"
+    }
+  ]
+}

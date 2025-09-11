@@ -1,0 +1,47 @@
+{
+  "name": "@bizbox/app-landing",
+  "version": "1.0.0",
+  "description": "BizBox landing page and marketplace",
+  "private": true,
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@bizbox/shared-types": "workspace:*",
+    "@bizbox/shared-ui": "workspace:*",
+    "@bizbox/shared-utils": "workspace:*",
+    "@bizbox/shared-hooks": "workspace:*",
+    "@bizbox/core-auth": "workspace:*",
+    "@bizbox/core-api": "workspace:*",
+    "@bizbox/plugin-community": "workspace:*",
+    "next": "^15.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "@radix-ui/react-slot": "^1.0.2",
+    "framer-motion": "^10.16.4",
+    "lucide-react": "^0.294.0",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.0.0",
+    "tailwind-merge": "^2.0.0",
+    "tailwindcss": "^3.3.0",
+    "@tailwindcss/forms": "^0.5.7",
+    "@tailwindcss/typography": "^0.5.10",
+    "@tailwindcss/aspect-ratio": "^0.4.2",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.31"
+  },
+  "devDependencies": {
+    "@bizbox/eslint-config": "workspace:*",
+    "@bizbox/typescript-config": "workspace:*",
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "eslint": "^8.0.0",
+    "eslint-config-next": "^14.0.0",
+    "typescript": "^5.0.0"
+  }
+}

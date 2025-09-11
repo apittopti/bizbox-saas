@@ -1,0 +1,43 @@
+{
+  "name": "@bizbox/shared-security",
+  "version": "1.0.0",
+  "description": "Comprehensive security framework for BizBox applications",
+  "main": "index.ts",
+  "types": "index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./content-sanitizer": "./content-sanitizer.ts",
+    "./security-headers": "./security-headers.ts",
+    "./config-manager": "./config-manager.ts",
+    "./input-validator": "./input-validator.ts"
+  },
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint . --ext .ts,.tsx",
+    "test": "jest"
+  },
+  "dependencies": {
+    "isomorphic-dompurify": "^2.0.0",
+    "zod": "^3.22.0",
+    "jsonwebtoken": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "next": ">=13.0.0",
+    "react": ">=18.0.0"
+  },
+  "keywords": [
+    "security",
+    "xss",
+    "csrf",
+    "sanitization",
+    "validation",
+    "headers",
+    "bizbox"
+  ],
+  "author": "BizBox Security Team",
+  "license": "MIT"
+}

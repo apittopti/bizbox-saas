@@ -1,0 +1,62 @@
+{
+  "files": [],
+  "references": [
+    {
+      "path": "./packages/shared/types"
+    },
+    {
+      "path": "./packages/shared/utils"
+    },
+    {
+      "path": "./packages/shared/hooks"
+    },
+    {
+      "path": "./packages/shared/ui"
+    },
+    {
+      "path": "./packages/core/framework"
+    },
+    {
+      "path": "./packages/core/database"
+    },
+    {
+      "path": "./packages/core/auth"
+    },
+    {
+      "path": "./packages/core/api"
+    },
+    {
+      "path": "./packages/plugins/booking"
+    },
+    {
+      "path": "./packages/plugins/ecommerce"
+    },
+    {
+      "path": "./packages/plugins/website-builder"
+    },
+    {
+      "path": "./packages/plugins/media-manager"
+    },
+    {
+      "path": "./packages/plugins/community"
+    },
+    {
+      "path": "./packages/plugins/payments"
+    },
+    {
+      "path": "./apps/landing"
+    },
+    {
+      "path": "./apps/admin"
+    },
+    {
+      "path": "./apps/tenant"
+    },
+    {
+      "path": "./apps/builder"
+    },
+    {
+      "path": "./apps/customer"
+    }
+  ]
+}

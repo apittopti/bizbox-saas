@@ -1,0 +1,11 @@
+{
+  "name": "@bizbox/typescript-config",
+  "version": "1.0.0",
+  "description": "BizBox shared TypeScript configuration",
+  "main": "index.json",
+  "files": [
+    "base.json",
+    "nextjs.json",
+    "react-library.json"
+  ]
+}

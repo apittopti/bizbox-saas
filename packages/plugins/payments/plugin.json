@@ -1,0 +1,100 @@
+{
+  "name": "payments",
+  "version": "1.0.0",
+  "displayName": "Payments & Billing",
+  "description": "Comprehensive payment processing with Stripe Connect for platform subscriptions and tenant payments",
+  "author": "BizBox Team",
+  "category": "core",
+  "tags": ["payments", "stripe", "billing", "subscriptions"],
+  "main": "dist/index.js",
+  "dependencies": {
+    "@bizbox/core": "^1.0.0"
+  },
+  "permissions": [
+    "payments:read",
+    "payments:write",
+    "payments:refund",
+    "subscriptions:manage",
+    "webhooks:receive"
+  ],
+  "hooks": [
+    "payment.created",
+    "payment.succeeded",
+    "payment.failed",
+    "booking.payment_created",
+    "booking.payment_succeeded",
+    "subscription.created",
+    "subscription.updated",
+    "subscription.canceled",
+    "account.connected",
+    "refund.processed"
+  ],
+  "routes": [
+    {
+      "path": "/api/payments/stripe",
+      "handler": "api/stripe-routes"
+    }
+  ],
+  "webhooks": [
+    {
+      "path": "/api/payments/stripe/webhook",
+      "events": [
+        "payment_intent.succeeded",
+        "payment_intent.payment_failed",
+        "payment_intent.requires_action",
+        "invoice.payment_succeeded",
+        "invoice.payment_failed",
+        "customer.subscription.updated",
+        "customer.subscription.deleted",
+        "account.updated",
+        "charge.dispute.created",
+        "charge.refunded"
+      ]
+    }
+  ],
+  "configuration": {
+    "stripe": {
+      "platformSecretKey": {
+        "type": "string",
+        "required": true,
+        "description": "Stripe platform secret key",
+        "env": "STRIPE_SECRET_KEY"
+      },
+      "webhookSecret": {
+        "type": "string",
+        "required": true,
+        "description": "Stripe webhook secret",
+        "env": "STRIPE_WEBHOOK_SECRET"
+      },
+      "platformFeePercentage": {
+        "type": "number",
+        "default": 0.029,
+        "description": "Platform fee percentage (default 2.9%)"
+      },
+      "platformFeeFixed": {
+        "type": "number",
+        "default": 30,
+        "description": "Platform fixed fee in pence (default 30p)"
+      }
+    }
+  },
+  "database": {
+    "migrations": [
+      "migrations/001_payment_tables.sql"
+    ]
+  },
+  "ui": {
+    "adminPanels": [
+      {
+        "name": "Payment Settings",
+        "path": "/settings/payments",
+        "component": "components/PaymentSettings"
+      },
+      {
+        "name": "Payment Analytics",
+        "path": "/analytics/payments",
+        "component": "components/PaymentAnalytics"
+      }
+    ]
+  }
+}

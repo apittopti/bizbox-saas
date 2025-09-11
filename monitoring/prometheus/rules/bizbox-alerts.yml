@@ -1,0 +1,269 @@
+# BizBox Alert Rules for Prometheus
+
+groups:
+  # Application Health Alerts
+  - name: bizbox.application.health
+    rules:
+      - alert: ApplicationDown
+        expr: up{job=~"bizbox-.*"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "BizBox application {{ $labels.job }} is down"
+          description: "{{ $labels.job }} has been down for more than 5 minutes."
+
+      - alert: ApplicationHighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.05
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High error rate on {{ $labels.job }}"
+          description: "Error rate is {{ $value | humanizePercentage }} for {{ $labels.job }}."
+
+      - alert: ApplicationHighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High response time on {{ $labels.job }}"
+          description: "95th percentile response time is {{ $value }}s for {{ $labels.job }}."
+
+  # Database Alerts
+  - name: bizbox.database
+    rules:
+      - alert: PostgreSQLDown
+        expr: pg_up == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL is down"
+          description: "PostgreSQL database has been down for more than 5 minutes."
+
+      - alert: PostgreSQLTooManyConnections
+        expr: sum(pg_stat_activity_count) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "PostgreSQL too many connections"
+          description: "PostgreSQL instance has too many connections ({{ $value }})."
+
+      - alert: PostgreSQLHighConnectionUtilization
+        expr: sum(pg_stat_activity_count) / pg_settings_max_connections > 0.8
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "PostgreSQL high connection utilization"
+          description: "Connection utilization is {{ $value | humanizePercentage }}."
+
+      - alert: PostgreSQLLongRunningTransaction
+        expr: max(pg_stat_activity_max_tx_duration{state="active"}) > 300
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "PostgreSQL long running transaction"
+          description: "A transaction has been running for {{ $value }}s."
+
+      - alert: PostgreSQLDiskSpaceLow
+        expr: pg_database_size_bytes / (pg_database_size_bytes + pg_stat_database_temp_bytes) > 0.9
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL disk space low"
+          description: "Database disk usage is {{ $value | humanizePercentage }}."
+
+  # Redis Alerts
+  - name: bizbox.redis
+    rules:
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis is down"
+          description: "Redis instance has been down for more than 5 minutes."
+
+      - alert: RedisHighMemoryUsage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.9
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis high memory usage"
+          description: "Redis memory usage is {{ $value | humanizePercentage }}."
+
+      - alert: RedisHighConnectedClients
+        expr: redis_connected_clients > 200
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis high number of connected clients"
+          description: "Redis has {{ $value }} connected clients."
+
+  # System Resource Alerts
+  - name: bizbox.system
+    rules:
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is {{ $value }}% on {{ $labels.instance }}."
+
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage on {{ $labels.instance }}"
+          description: "Memory usage is {{ $value }}% on {{ $labels.instance }}."
+
+      - alert: DiskSpaceLow
+        expr: (1 - (node_filesystem_free_bytes / node_filesystem_size_bytes)) * 100 > 80
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disk space low on {{ $labels.instance }}"
+          description: "Disk usage is {{ $value }}% on mount {{ $labels.mountpoint }}."
+
+      - alert: DiskSpaceCritical
+        expr: (1 - (node_filesystem_free_bytes / node_filesystem_size_bytes)) * 100 > 90
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Disk space critically low on {{ $labels.instance }}"
+          description: "Disk usage is {{ $value }}% on mount {{ $labels.mountpoint }}."
+
+      - alert: HighDiskIOWait
+        expr: irate(node_cpu_seconds_total{mode="iowait"}[5m]) * 100 > 20
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High disk I/O wait on {{ $labels.instance }}"
+          description: "Disk I/O wait is {{ $value }}% on {{ $labels.instance }}."
+
+  # Container Alerts
+  - name: bizbox.containers
+    rules:
+      - alert: ContainerDown
+        expr: absent(container_last_seen{name=~"bizbox-.*"})
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Container {{ $labels.name }} is down"
+          description: "Container {{ $labels.name }} has been down for more than 5 minutes."
+
+      - alert: ContainerHighCPUUsage
+        expr: rate(container_cpu_usage_seconds_total{name=~"bizbox-.*"}[5m]) * 100 > 80
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Container {{ $labels.name }} high CPU usage"
+          description: "Container {{ $labels.name }} CPU usage is {{ $value }}%."
+
+      - alert: ContainerHighMemoryUsage
+        expr: (container_memory_usage_bytes{name=~"bizbox-.*"} / container_spec_memory_limit_bytes) * 100 > 80
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Container {{ $labels.name }} high memory usage"
+          description: "Container {{ $labels.name }} memory usage is {{ $value }}%."
+
+      - alert: ContainerRestartLoop
+        expr: increase(container_restart_count{name=~"bizbox-.*"}[1h]) > 3
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Container {{ $labels.name }} is in restart loop"
+          description: "Container {{ $labels.name }} has restarted {{ $value }} times in the last hour."
+
+  # Network Alerts
+  - name: bizbox.network
+    rules:
+      - alert: HighNetworkTraffic
+        expr: rate(node_network_receive_bytes_total[5m]) + rate(node_network_transmit_bytes_total[5m]) > 100000000
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High network traffic on {{ $labels.instance }}"
+          description: "Network traffic is {{ $value | humanize }}B/s on interface {{ $labels.device }}."
+
+      - alert: NetworkInterfaceDown
+        expr: node_network_up{device!="lo"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Network interface {{ $labels.device }} down on {{ $labels.instance }}"
+          description: "Network interface {{ $labels.device }} has been down for more than 5 minutes."
+
+  # SSL Certificate Alerts
+  - name: bizbox.ssl
+    rules:
+      - alert: SSLCertificateExpiringSoon
+        expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 30
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: "SSL certificate expiring soon for {{ $labels.instance }}"
+          description: "SSL certificate for {{ $labels.instance }} expires in {{ $value | humanizeDuration }}."
+
+      - alert: SSLCertificateExpiring
+        expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 7
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "SSL certificate expiring for {{ $labels.instance }}"
+          description: "SSL certificate for {{ $labels.instance }} expires in {{ $value | humanizeDuration }}."
+
+  # Business Logic Alerts
+  - name: bizbox.business
+    rules:
+      - alert: HighUserRegistrationRate
+        expr: rate(bizbox_user_registrations_total[1h]) > 100
+        for: 5m
+        labels:
+          severity: info
+        annotations:
+          summary: "High user registration rate"
+          description: "User registration rate is {{ $value }} per hour."
+
+      - alert: PaymentProcessingErrors
+        expr: rate(bizbox_payment_errors_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Payment processing errors detected"
+          description: "Payment error rate is {{ $value }} per second."
+
+      - alert: LowActiveUsers
+        expr: bizbox_active_users < 10
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low number of active users"
+          description: "Only {{ $value }} users are currently active."

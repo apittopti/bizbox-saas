@@ -1,0 +1,15 @@
+{
+  "extends": "@bizbox/typescript-config/base.json",
+  "compilerOptions": {
+    "composite": true,
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
+  "include": ["src/**/*"],
+  "exclude": ["dist", "node_modules"],
+  "references": [
+    {
+      "path": "../types"
+    }
+  ]
+}

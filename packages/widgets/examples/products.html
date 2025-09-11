@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BizBox Product Catalog Widget Example</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+      background: #f5f5f5;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+    
+    .header h1 {
+      color: #1f2937;
+      margin-bottom: 0.5rem;
+    }
+    
+    .header p {
+      color: #6b7280;
+      font-size: 1.1rem;
+    }
+    
+    .widget-container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      margin: 2rem 0;
+      overflow: hidden;
+      min-height: 600px;
+    }
+    
+    .config-panel {
+      background: #1f2937;
+      color: white;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      overflow-x: auto;
+    }
+    
+    .config-panel h3 {
+      margin: 0 0 1rem 0;
+      color: #f9fafb;
+    }
+    
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      font-size: 0.9rem;
+    }
+    
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin: 3rem 0;
+    }
+    
+    .feature {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .feature h3 {
+      margin: 0 0 1rem 0;
+      color: #1f2937;
+    }
+    
+    .feature ul {
+      margin: 0;
+      padding-left: 1.5rem;
+      color: #6b7280;
+    }
+    
+    .controls {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+    
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background: #3b82f6;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: #2563eb;
+    }
+    
+    .btn-secondary {
+      background: #e5e7eb;
+      color: #374151;
+    }
+    
+    .btn-secondary:hover {
+      background: #d1d5db;
+    }
+    
+    .status {
+      padding: 1rem;
+      border-radius: 6px;
+      margin-bottom: 1rem;
+      font-family: monospace;
+      font-size: 0.9rem;
+    }
+    
+    .status-info {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e40af;
+    }
+    
+    .status-success {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #15803d;
+    }
+    
+    .cart-summary {
+      background: white;
+      border-radius: 8px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-bottom: 2rem;
+    }
+    
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .cart-item:last-child {
+      border-bottom: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🛍️ BizBox Product Catalog Widget</h1>
+      <p>Complete e-commerce solution with shopping cart functionality</p>
+    </div>
+
+    <div class="config-panel">
+      <h3>Configuration Example</h3>
+      <pre id="config-display">Loading configuration...</pre>
+    </div>
+
+    <div class="controls">
+      <button class="btn btn-primary" onclick="createProductWidget()">Initialize Widget</button>
+      <button class="btn btn-secondary" onclick="destroyWidget()">Destroy Widget</button>
+      <button class="btn btn-secondary" onclick="toggleLayout()">Toggle Layout</button>
+      <button class="btn btn-secondary" onclick="clearCart()">Clear Cart</button>
+      <button class="btn btn-secondary" onclick="viewCart()">View Cart</button>
+    </div>
+
+    <div id="status" class="status status-info">
+      Widget not initialized. Click "Initialize Widget" to start.
+    </div>
+
+    <!-- External Cart Summary -->
+    <div id="external-cart" class="cart-summary" style="display: none;">
+      <h3>External Cart Summary</h3>
+      <div id="cart-items"></div>
+      <div style="margin-top: 1rem; padding-top: 1rem; border-top: 2px solid #e5e7eb; font-weight: 600;">
+        Total: <span id="cart-total">£0.00</span>
+      </div>
+    </div>
+
+    <!-- Widget Container -->
+    <div class="widget-container">
+      <div id="products-widget">
+        <!-- Product catalog widget will be rendered here -->
+      </div>
+    </div>
+
+    <div class="features">
+      <div class="feature">
+        <h3>🛍️ Shopping Features</h3>
+        <ul>
+          <li>Product grid and list layouts</li>
+          <li>Search and filter functionality</li>
+          <li>Product variants support</li>
+          <li>Shopping cart integration</li>
+          <li>Quantity management</li>
+          <li>Pagination support</li>
+          <li>Out of stock handling</li>
+        </ul>
+      </div>
+      
+      <div class="feature">
+        <h3>🎨 Customization</h3>
+        <ul>
+          <li>Responsive grid layouts</li>
+          <li>Custom themes</li>
+          <li>Brand color integration</li>
+          <li>Flexible product display</li>
+          <li>Custom CSS support</li>
+        </ul>
+      </div>
+      
+      <div class="feature">
+        <h3>⚙️ Configuration</h3>
+        <ul>
+          <li>Category-based filtering</li>
+          <li>Products per page control</li>
+          <li>Cart visibility toggle</li>
+          <li>Event-driven callbacks</li>
+          <li>External cart integration</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="config-panel">
+      <h3>HTML Integration</h3>
+      <pre>&lt;!-- Simple HTML embedding --&gt;
+&lt;div id="products-widget" 
+     data-bizbox-widget="products"
+     data-bizbox-config='{"tenantId": "demo-tenant", "categoryId": "featured"}'&gt;
+&lt;/div&gt;
+
+&lt;!-- Include the widget script --&gt;
+&lt;script src="https://widgets.bizbox.co.uk/embed.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  BizBox.init({
+    tenantId: 'demo-tenant',
+    theme: 'modern'
+  });
+&lt;/script&gt;</pre>
+    </div>
+  </div>
+
+  <!-- BizBox Widget Script -->
+  <script src="../dist/embed.js"></script>
+  
+  <script>
+    let widget = null;
+    let currentLayout = 'grid';
+    let externalCart = {
+      items: [],
+      totalItems: 0,
+      totalPrice: 0,
+      currency: 'GBP'
+    };
+
+    // Configuration object
+    const config = {
+      tenantId: 'demo-tenant-123',
+      apiBaseUrl: 'https://api.bizbox.co.uk',
+      showCart: true,
+      showFilters: true,
+      productsPerPage: 12,
+      layout: currentLayout,
+      onAddToCart: (item) => {
+        updateStatus(`Added to cart: ${item.quantity}x Product ${item.productId}`, 'success');
+        updateExternalCart(item);
+        console.log('Item added to cart:', item);
+      },
+      onCheckout: (cart) => {
+        updateStatus(`Checkout initiated with ${cart.totalItems} items (${formatCurrency(cart.totalPrice)})`, 'info');
+        console.log('Checkout initiated:', cart);
+        // In a real implementation, this would redirect to checkout
+        alert(`Checkout initiated!\n\nItems: ${cart.totalItems}\nTotal: ${formatCurrency(cart.totalPrice, cart.currency)}`);
+      }
+    };
+
+    // Update config display
+    function updateConfigDisplay() {
+      document.getElementById('config-display').textContent = JSON.stringify(config, null, 2);
+    }
+
+    // Update status message
+    function updateStatus(message, type = 'info') {
+      const statusEl = document.getElementById('status');
+      statusEl.textContent = message;
+      statusEl.className = `status status-${type}`;
+    }
+
+    // Format currency
+    function formatCurrency(amount, currency = 'GBP') {
+      return new Intl.NumberFormat('en-GB', {
+        style: 'currency',
+        currency: currency
+      }).format(amount);
+    }
+
+    // Update external cart display
+    function updateExternalCart(newItem) {
+      // Find existing item
+      const existingItem = externalCart.items.find(item => 
+        item.productId === newItem.productId && item.variantId === newItem.variantId
+      );
+
+      if (existingItem) {
+        existingItem.quantity += newItem.quantity;
+      } else {
+        externalCart.items.push({...newItem});
+      }
+
+      // Recalculate totals
+      externalCart.totalItems = externalCart.items.reduce((total, item) => total + item.quantity, 0);
+      externalCart.totalPrice = externalCart.items.reduce((total, item) => total + (item.price * item.quantity), 0);
+
+      // Update display
+      displayExternalCart();
+    }
+
+    // Display external cart
+    function displayExternalCart() {
+      const cartContainer = document.getElementById('external-cart');
+      const cartItemsContainer = document.getElementById('cart-items');
+      const cartTotalElement = document.getElementById('cart-total');
+
+      if (externalCart.totalItems === 0) {
+        cartContainer.style.display = 'none';
+        return;
+      }
+
+      cartContainer.style.display = 'block';
+      
+      cartItemsContainer.innerHTML = '';
+      externalCart.items.forEach(item => {
+        const itemElement = document.createElement('div');
+        itemElement.className = 'cart-item';
+        itemElement.innerHTML = `
+          <span>Product ${item.productId} ${item.variantId ? `(${item.variantId})` : ''}</span>
+          <span>${item.quantity}x ${formatCurrency(item.price)} = ${formatCurrency(item.price * item.quantity)}</span>
+        `;
+        cartItemsContainer.appendChild(itemElement);
+      });
+
+      cartTotalElement.textContent = formatCurrency(externalCart.totalPrice, externalCart.currency);
+    }
+
+    // Initialize BizBox
+    function initializeBizBox() {
+      try {
+        BizBox.init({
+          tenantId: config.tenantId,
+          apiBaseUrl: config.apiBaseUrl,
+          theme: 'modern',
+          debug: true
+        });
+
+        updateStatus('BizBox initialized successfully', 'success');
+      } catch (error) {
+        updateStatus(`Initialization error: ${error.message}`, 'error');
+        console.error('BizBox initialization error:', error);
+      }
+    }
+
+    // Create product catalog widget
+    function createProductWidget() {
+      try {
+        if (widget) {
+          updateStatus('Widget already exists. Destroy it first.', 'info');
+          return;
+        }
+
+        widget = BizBox.createProductCatalogWidget('products-widget', config);
+        updateStatus('Product catalog widget created successfully', 'success');
+      } catch (error) {
+        updateStatus(`Widget creation error: ${error.message}`, 'error');
+        console.error('Widget creation error:', error);
+      }
+    }
+
+    // Destroy widget
+    function destroyWidget() {
+      try {
+        if (!widget) {
+          updateStatus('No widget to destroy', 'info');
+          return;
+        }
+
+        BizBox.destroyWidget('products-widget');
+        widget = null;
+        updateStatus('Widget destroyed', 'info');
+      } catch (error) {
+        updateStatus(`Widget destruction error: ${error.message}`, 'error');
+        console.error('Widget destruction error:', error);
+      }
+    }
+
+    // Toggle layout
+    function toggleLayout() {
+      try {
+        currentLayout = currentLayout === 'grid' ? 'list' : 'grid';
+        config.layout = currentLayout;
+        
+        if (widget) {
+          // Destroy and recreate with new layout
+          BizBox.destroyWidget('products-widget');
+          widget = BizBox.createProductCatalogWidget('products-widget', config);
+        }
+        
+        updateConfigDisplay();
+        updateStatus(`Layout changed to: ${currentLayout}`, 'info');
+      } catch (error) {
+        updateStatus(`Layout toggle error: ${error.message}`, 'error');
+        console.error('Layout toggle error:', error);
+      }
+    }
+
+    // Clear cart
+    function clearCart() {
+      try {
+        if (widget) {
+          widget.clearCart();
+        }
+        
+        externalCart = {
+          items: [],
+          totalItems: 0,
+          totalPrice: 0,
+          currency: 'GBP'
+        };
+        
+        displayExternalCart();
+        updateStatus('Cart cleared', 'info');
+      } catch (error) {
+        updateStatus(`Clear cart error: ${error.message}`, 'error');
+        console.error('Clear cart error:', error);
+      }
+    }
+
+    // View cart details
+    function viewCart() {
+      if (!widget) {
+        updateStatus('No widget available', 'info');
+        return;
+      }
+
+      const cart = widget.getCart();
+      const cartDetails = `
+Cart Details:
+- Items: ${cart.totalItems}
+- Total: ${formatCurrency(cart.totalPrice, cart.currency)}
+- Individual Items: ${cart.items.length}
+
+External Cart:
+- Items: ${externalCart.totalItems}
+- Total: ${formatCurrency(externalCart.totalPrice, externalCart.currency)}
+      `;
+      
+      alert(cartDetails);
+      console.log('Widget cart:', cart);
+      console.log('External cart:', externalCart);
+    }
+
+    // Initialize everything when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      updateConfigDisplay();
+      initializeBizBox();
+      
+      // Auto-create widget after a short delay
+      setTimeout(() => {
+        createProductWidget();
+      }, 1000);
+    });
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', function() {
+      if (widget) {
+        BizBox.destroyAll();
+      }
+    });
+  </script>
+</body>
+</html>

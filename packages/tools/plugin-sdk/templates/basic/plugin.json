@@ -1,0 +1,10 @@
+{
+  "id": "{{pluginId}}",
+  "name": "{{pluginName}}",
+  "version": "1.0.0",
+  "description": "{{pluginDescription}}",
+  "author": "{{pluginAuthor}}",
+  "dependencies": {},
+  "tags": ["basic"],
+  "license": "MIT"
+}

@@ -1,0 +1,9 @@
+#!/usr/bin/env node
+
+const { PluginCLI } = require('../dist/cli');
+
+const cli = new PluginCLI();
+cli.run(process.argv.slice(2)).catch(error => {
+  console.error('CLI Error:', error);
+  process.exit(1);
+});

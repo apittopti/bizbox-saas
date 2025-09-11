@@ -1,0 +1,45 @@
+{
+  "name": "@bizbox/payments-plugin",
+  "version": "1.0.0",
+  "description": "BizBox Payments Plugin with Stripe Integration",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "lint": "eslint src --ext .ts,.tsx",
+    "lint:fix": "eslint src --ext .ts,.tsx --fix"
+  },
+  "dependencies": {
+    "@bizbox/core": "workspace:*",
+    "@bizbox/shared": "workspace:*",
+    "stripe": "^14.0.0",
+    "zod": "^3.22.0",
+    "express": "^4.18.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.0",
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.0.0",
+    "jest": "^29.5.0",
+    "typescript": "^5.0.0",
+    "eslint": "^8.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "keywords": [
+    "bizbox",
+    "payments",
+    "stripe",
+    "plugin",
+    "saas"
+  ],
+  "author": "BizBox Team",
+  "license": "MIT"
+}

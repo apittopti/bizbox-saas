@@ -1,0 +1,23 @@
+{
+  "name": "@bizbox/eslint-config",
+  "version": "1.0.0",
+  "description": "BizBox shared ESLint configuration",
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "react.js",
+    "next.js"
+  ],
+  "dependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-import": "^2.29.0",
+    "eslint-plugin-react": "^7.33.0",
+    "eslint-plugin-react-hooks": "^4.6.0"
+  },
+  "peerDependencies": {
+    "eslint": "^8.0.0",
+    "typescript": "^5.0.0"
+  }
+}

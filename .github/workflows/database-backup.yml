@@ -1,0 +1,123 @@
+# Database Backup and Maintenance Workflow
+
+name: Database Backup & Maintenance
+
+on:
+  schedule:
+    # Daily backup at 2 AM UTC
+    - cron: '0 2 * * *'
+    # Weekly maintenance at 3 AM UTC on Sunday
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+    inputs:
+      backup_type:
+        description: 'Type of backup to perform'
+        required: true
+        default: 'incremental'
+        type: choice
+        options:
+          - incremental
+          - full
+      maintenance:
+        description: 'Perform database maintenance'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  backup:
+    name: Database Backup
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup backup context
+        run: |
+          echo "BACKUP_DATE=$(date +%Y%m%d_%H%M%S)" >> $GITHUB_ENV
+          echo "BACKUP_TYPE=${{ github.event.inputs.backup_type || 'incremental' }}" >> $GITHUB_ENV
+          
+      - name: Create database backup
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.COOLIFY_HOST }}
+          username: ${{ secrets.COOLIFY_USER }}
+          key: ${{ secrets.COOLIFY_SSH_KEY }}
+          port: ${{ secrets.COOLIFY_PORT || 22 }}
+          script: |
+            # Create backup directory
+            mkdir -p /opt/coolify/backups/bizbox-db
+            
+            # Perform database backup
+            if [ "${{ env.BACKUP_TYPE }}" = "full" ]; then
+              docker exec bizbox-postgres pg_dump -U bizbox_user -d bizbox -f /tmp/bizbox_full_${{ env.BACKUP_DATE }}.sql
+              docker cp bizbox-postgres:/tmp/bizbox_full_${{ env.BACKUP_DATE }}.sql /opt/coolify/backups/bizbox-db/
+            else
+              docker exec bizbox-postgres pg_dump -U bizbox_user -d bizbox -f /tmp/bizbox_inc_${{ env.BACKUP_DATE }}.sql
+              docker cp bizbox-postgres:/tmp/bizbox_inc_${{ env.BACKUP_DATE }}.sql /opt/coolify/backups/bizbox-db/
+            fi
+            
+            # Compress backup
+            cd /opt/coolify/backups/bizbox-db
+            tar -czf bizbox_backup_${{ env.BACKUP_DATE }}.tar.gz *.sql
+            rm *.sql
+            
+            # Upload to S3 (if configured)
+            if [ -n "${{ secrets.AWS_S3_BUCKET }}" ]; then
+              aws s3 cp bizbox_backup_${{ env.BACKUP_DATE }}.tar.gz s3://${{ secrets.AWS_S3_BUCKET }}/backups/database/
+            fi
+            
+            # Cleanup old backups (keep last 30 days)
+            find /opt/coolify/backups/bizbox-db -name "*.tar.gz" -mtime +30 -delete
+            
+      - name: Verify backup
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.COOLIFY_HOST }}
+          username: ${{ secrets.COOLIFY_USER }}
+          key: ${{ secrets.COOLIFY_SSH_KEY }}
+          script: |
+            # Verify backup file exists and is not empty
+            BACKUP_FILE="/opt/coolify/backups/bizbox-db/bizbox_backup_${{ env.BACKUP_DATE }}.tar.gz"
+            if [ ! -f "$BACKUP_FILE" ] || [ ! -s "$BACKUP_FILE" ]; then
+              echo "Backup verification failed!"
+              exit 1
+            fi
+            echo "Backup verified successfully: $BACKUP_FILE"
+            
+      - name: Database maintenance
+        if: github.event.schedule == '0 3 * * 0' || github.event.inputs.maintenance == 'true'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.COOLIFY_HOST }}
+          username: ${{ secrets.COOLIFY_USER }}
+          key: ${{ secrets.COOLIFY_SSH_KEY }}
+          script: |
+            echo "Performing database maintenance..."
+            
+            # Analyze and vacuum database
+            docker exec bizbox-postgres psql -U bizbox_user -d bizbox -c "ANALYZE;"
+            docker exec bizbox-postgres psql -U bizbox_user -d bizbox -c "VACUUM ANALYZE;"
+            
+            # Reindex database
+            docker exec bizbox-postgres psql -U bizbox_user -d bizbox -c "REINDEX DATABASE bizbox;"
+            
+            # Update statistics
+            docker exec bizbox-postgres psql -U bizbox_user -d bizbox -c "UPDATE pg_class SET reltuples = -1, relpages = -1 WHERE relkind = 'r';"
+            
+            echo "Database maintenance completed."
+            
+      - name: Notify backup status
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#infrastructure'
+          text: |
+            Database backup completed: ${{ job.status }}
+            Backup type: ${{ env.BACKUP_TYPE }}
+            Date: ${{ env.BACKUP_DATE }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

@@ -1,0 +1,108 @@
+# Prometheus Configuration for BizBox Monitoring
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'bizbox-production'
+    replica: 'prometheus-1'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+# Load rules once and periodically evaluate them
+rule_files:
+  - "rules/*.yml"
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Node Exporter - System metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+
+  # cAdvisor - Container metrics
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+
+  # PostgreSQL metrics
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+
+  # Redis metrics
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+
+  # Nginx metrics
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx-exporter:9113']
+
+  # BizBox Applications - Health checks and custom metrics
+  - job_name: 'bizbox-landing'
+    metrics_path: '/api/metrics'
+    static_configs:
+      - targets: ['landing:3000']
+    scrape_interval: 30s
+
+  - job_name: 'bizbox-admin'
+    metrics_path: '/api/metrics'
+    static_configs:
+      - targets: ['admin:3000']
+    scrape_interval: 30s
+
+  - job_name: 'bizbox-builder'
+    metrics_path: '/api/metrics'
+    static_configs:
+      - targets: ['builder:3000']
+    scrape_interval: 30s
+
+  - job_name: 'bizbox-customer'
+    metrics_path: '/api/metrics'
+    static_configs:
+      - targets: ['customer:3000']
+    scrape_interval: 30s
+
+  - job_name: 'bizbox-tenant'
+    metrics_path: '/api/metrics'
+    static_configs:
+      - targets: ['tenant:3000']
+    scrape_interval: 30s
+
+  # Blackbox exporter for external monitoring
+  - job_name: 'blackbox'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - https://bizbox.yourdomain.com
+          - https://admin.bizbox.yourdomain.com
+          - https://builder.bizbox.yourdomain.com
+          - https://app.bizbox.yourdomain.com
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+# Remote write configuration (for long-term storage)
+# remote_write:
+#   - url: "https://prometheus-prod-10-prod-us-central-0.grafana.net/api/prom/push"
+#     basic_auth:
+#       username: "your_grafana_cloud_user"
+#       password: "your_grafana_cloud_api_key"

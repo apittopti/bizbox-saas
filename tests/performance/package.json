@@ -1,0 +1,21 @@
+{
+  "name": "@bizbox/performance-tests",
+  "version": "1.0.0",
+  "description": "Performance testing suite for BizBox platform",
+  "scripts": {
+    "test:load": "k6 run scripts/load-test.js",
+    "test:stress": "k6 run scripts/stress-test.js",
+    "test:api": "k6 run scripts/api-performance.js",
+    "test:multi-tenant": "k6 run scripts/multi-tenant-load.js",
+    "test:plugin": "k6 run scripts/plugin-performance.js",
+    "test:database": "k6 run scripts/database-performance.js",
+    "test:all": "npm run test:load && npm run test:stress && npm run test:api",
+    "generate-report": "node scripts/generate-report.js"
+  },
+  "dependencies": {
+    "k6": "^0.50.0"
+  },
+  "devDependencies": {
+    "@types/k6": "^0.50.0"
+  }
+}

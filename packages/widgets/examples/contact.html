@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BizBox Contact Form Widget Example</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+      background: #f5f5f5;
+    }
+    
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+    
+    .header h1 {
+      color: #1f2937;
+      margin-bottom: 0.5rem;
+    }
+    
+    .header p {
+      color: #6b7280;
+      font-size: 1.1rem;
+    }
+    
+    .widget-container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      margin: 2rem 0;
+      overflow: hidden;
+    }
+    
+    .config-panel {
+      background: #1f2937;
+      color: white;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      overflow-x: auto;
+    }
+    
+    .config-panel h3 {
+      margin: 0 0 1rem 0;
+      color: #f9fafb;
+    }
+    
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      font-size: 0.9rem;
+    }
+    
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin: 3rem 0;
+    }
+    
+    .feature {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .feature h3 {
+      margin: 0 0 1rem 0;
+      color: #1f2937;
+    }
+    
+    .feature ul {
+      margin: 0;
+      padding-left: 1.5rem;
+      color: #6b7280;
+    }
+    
+    .controls {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+    
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background: #3b82f6;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: #2563eb;
+    }
+    
+    .btn-secondary {
+      background: #e5e7eb;
+      color: #374151;
+    }
+    
+    .btn-secondary:hover {
+      background: #d1d5db;
+    }
+    
+    .status {
+      padding: 1rem;
+      border-radius: 6px;
+      margin-bottom: 1rem;
+      font-family: monospace;
+      font-size: 0.9rem;
+    }
+    
+    .status-info {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e40af;
+    }
+    
+    .status-success {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #15803d;
+    }
+    
+    .demo-forms {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 2rem;
+      margin: 3rem 0;
+    }
+    
+    .form-data-display {
+      background: white;
+      border-radius: 8px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .form-data-display h3 {
+      margin: 0 0 1rem 0;
+      color: #1f2937;
+    }
+    
+    .form-field {
+      margin-bottom: 0.5rem;
+      padding: 0.5rem;
+      background: #f9fafb;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📝 BizBox Contact Form Widget</h1>
+      <p>Professional contact forms with validation and customization</p>
+    </div>
+
+    <div class="config-panel">
+      <h3>Configuration Example</h3>
+      <pre id="config-display">Loading configuration...</pre>
+    </div>
+
+    <div class="controls">
+      <button class="btn btn-primary" onclick="createContactWidget()">Initialize Widget</button>
+      <button class="btn btn-secondary" onclick="destroyWidget()">Destroy Widget</button>
+      <button class="btn btn-secondary" onclick="toggleFeatures()">Toggle Features</button>
+      <button class="btn btn-secondary" onclick="prefillForm()">Prefill Form</button>
+      <button class="btn btn-secondary" onclick="clearForm()">Clear Form</button>
+    </div>
+
+    <div id="status" class="status status-info">
+      Widget not initialized. Click "Initialize Widget" to start.
+    </div>
+
+    <div class="demo-forms">
+      <!-- Widget Container -->
+      <div class="widget-container">
+        <div id="contact-widget">
+          <!-- Contact form widget will be rendered here -->
+        </div>
+      </div>
+
+      <!-- Form Data Display -->
+      <div class="form-data-display">
+        <h3>📊 Form Data Monitor</h3>
+        <div id="form-data">
+          <p style="color: #6b7280; font-style: italic;">Form data will appear here as you type...</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="features">
+      <div class="feature">
+        <h3>✨ Form Features</h3>
+        <ul>
+          <li>Real-time validation</li>
+          <li>Required field indicators</li>
+          <li>Email format validation</li>
+          <li>Phone number validation</li>
+          <li>Message length limits</li>
+          <li>Category selection</li>
+          <li>Success confirmation</li>
+        </ul>
+      </div>
+      
+      <div class="feature">
+        <h3>🎨 Customization</h3>
+        <ul>
+          <li>Optional field visibility</li>
+          <li>Custom categories</li>
+          <li>Theme integration</li>
+          <li>Custom validation rules</li>
+          <li>Brand styling</li>
+        </ul>
+      </div>
+      
+      <div class="feature">
+        <h3>⚙️ Configuration</h3>
+        <ul>
+          <li>Show/hide phone field</li>
+          <li>Show/hide subject field</li>
+          <li>Custom categories list</li>
+          <li>Submission callbacks</li>
+          <li>External form control</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="config-panel">
+      <h3>HTML Integration</h3>
+      <pre>&lt;!-- Simple HTML embedding --&gt;
+&lt;div id="contact-widget" 
+     data-bizbox-widget="contact"
+     data-bizbox-config='{"tenantId": "demo-tenant", "showPhone": true}'&gt;
+&lt;/div&gt;
+
+&lt;!-- Include the widget script --&gt;
+&lt;script src="https://widgets.bizbox.co.uk/embed.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  BizBox.init({
+    tenantId: 'demo-tenant',
+    theme: 'modern'
+  });
+&lt;/script&gt;</pre>
+    </div>
+
+    <div class="config-panel">
+      <h3>📧 Submission Results</h3>
+      <div id="submissions-log" style="color: #10b981; max-height: 200px; overflow-y: auto;">
+        <p style="margin: 0; font-style: italic;">Submission results will appear here...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- BizBox Widget Script -->
+  <script src="../dist/embed.js"></script>
+  
+  <script>
+    let widget = null;
+    let featuresEnabled = {
+      showPhone: true,
+      showSubject: true,
+      categories: true
+    };
+
+    // Configuration object
+    const config = {
+      tenantId: 'demo-tenant-123',
+      apiBaseUrl: 'https://api.bizbox.co.uk',
+      showPhone: featuresEnabled.showPhone,
+      showSubject: featuresEnabled.showSubject,
+      categories: featuresEnabled.categories ? [
+        'General Inquiry',
+        'Technical Support',
+        'Sales',
+        'Feedback',
+        'Partnership'
+      ] : undefined,
+      onSubmit: (result) => {
+        updateStatus(`Form submitted successfully! ID: ${result.id}`, 'success');
+        logSubmission(result);
+        console.log('Form submitted:', result);
+      }
+    };
+
+    // Update config display
+    function updateConfigDisplay() {
+      document.getElementById('config-display').textContent = JSON.stringify(config, null, 2);
+    }
+
+    // Update status message
+    function updateStatus(message, type = 'info') {
+      const statusEl = document.getElementById('status');
+      statusEl.textContent = message;
+      statusEl.className = `status status-${type}`;
+    }
+
+    // Log submission results
+    function logSubmission(result) {
+      const logContainer = document.getElementById('submissions-log');
+      const timestamp = new Date().toLocaleTimeString();
+      const logEntry = document.createElement('div');
+      logEntry.innerHTML = `<strong>${timestamp}:</strong> Submission ${result.id} - Status: ${result.status}`;
+      logEntry.style.marginBottom = '0.5rem';
+      
+      if (logContainer.children.length === 1 && logContainer.children[0].tagName === 'P') {
+        logContainer.innerHTML = '';
+      }
+      
+      logContainer.appendChild(logEntry);
+      logContainer.scrollTop = logContainer.scrollHeight;
+    }
+
+    // Monitor form data changes
+    function startFormMonitoring() {
+      if (!widget) return;
+
+      const formDataDisplay = document.getElementById('form-data');
+      
+      // Monitor form changes
+      setInterval(() => {
+        const formData = widget.getFormData();
+        if (formData && Object.values(formData).some(value => value)) {
+          displayFormData(formData);
+        }
+      }, 1000);
+    }
+
+    // Display current form data
+    function displayFormData(data) {
+      const formDataDisplay = document.getElementById('form-data');
+      formDataDisplay.innerHTML = '';
+
+      Object.entries(data).forEach(([key, value]) => {
+        if (value) {
+          const fieldDiv = document.createElement('div');
+          fieldDiv.className = 'form-field';
+          fieldDiv.innerHTML = `<strong>${key}:</strong> ${value}`;
+          formDataDisplay.appendChild(fieldDiv);
+        }
+      });
+
+      if (formDataDisplay.children.length === 0) {
+        formDataDisplay.innerHTML = '<p style="color: #6b7280; font-style: italic;">Form data will appear here as you type...</p>';
+      }
+    }
+
+    // Initialize BizBox
+    function initializeBizBox() {
+      try {
+        BizBox.init({
+          tenantId: config.tenantId,
+          apiBaseUrl: config.apiBaseUrl,
+          theme: 'modern',
+          debug: true
+        });
+
+        updateStatus('BizBox initialized successfully', 'success');
+      } catch (error) {
+        updateStatus(`Initialization error: ${error.message}`, 'error');
+        console.error('BizBox initialization error:', error);
+      }
+    }
+
+    // Create contact form widget
+    function createContactWidget() {
+      try {
+        if (widget) {
+          updateStatus('Widget already exists. Destroy it first.', 'info');
+          return;
+        }
+
+        widget = BizBox.createContactFormWidget('contact-widget', config);
+        updateStatus('Contact form widget created successfully', 'success');
+        
+        // Start monitoring form data
+        setTimeout(() => {
+          startFormMonitoring();
+        }, 500);
+        
+      } catch (error) {
+        updateStatus(`Widget creation error: ${error.message}`, 'error');
+        console.error('Widget creation error:', error);
+      }
+    }
+
+    // Destroy widget
+    function destroyWidget() {
+      try {
+        if (!widget) {
+          updateStatus('No widget to destroy', 'info');
+          return;
+        }
+
+        BizBox.destroyWidget('contact-widget');
+        widget = null;
+        document.getElementById('form-data').innerHTML = '<p style="color: #6b7280; font-style: italic;">Form data will appear here as you type...</p>';
+        updateStatus('Widget destroyed', 'info');
+      } catch (error) {
+        updateStatus(`Widget destruction error: ${error.message}`, 'error');
+        console.error('Widget destruction error:', error);
+      }
+    }
+
+    // Toggle optional features
+    function toggleFeatures() {
+      try {
+        // Cycle through feature combinations
+        if (featuresEnabled.showPhone && featuresEnabled.showSubject && featuresEnabled.categories) {
+          // Disable phone
+          featuresEnabled.showPhone = false;
+        } else if (!featuresEnabled.showPhone && featuresEnabled.showSubject && featuresEnabled.categories) {
+          // Disable subject
+          featuresEnabled.showSubject = false;
+        } else if (!featuresEnabled.showPhone && !featuresEnabled.showSubject && featuresEnabled.categories) {
+          // Disable categories
+          featuresEnabled.categories = false;
+        } else {
+          // Enable all
+          featuresEnabled.showPhone = true;
+          featuresEnabled.showSubject = true;
+          featuresEnabled.categories = true;
+        }
+
+        // Update config
+        config.showPhone = featuresEnabled.showPhone;
+        config.showSubject = featuresEnabled.showSubject;
+        config.categories = featuresEnabled.categories ? [
+          'General Inquiry',
+          'Technical Support', 
+          'Sales',
+          'Feedback',
+          'Partnership'
+        ] : undefined;
+
+        // Recreate widget with new config
+        if (widget) {
+          BizBox.destroyWidget('contact-widget');
+          widget = BizBox.createContactFormWidget('contact-widget', config);
+          setTimeout(() => startFormMonitoring(), 500);
+        }
+
+        updateConfigDisplay();
+        
+        const enabledFeatures = [];
+        if (featuresEnabled.showPhone) enabledFeatures.push('phone');
+        if (featuresEnabled.showSubject) enabledFeatures.push('subject');
+        if (featuresEnabled.categories) enabledFeatures.push('categories');
+        
+        updateStatus(`Features enabled: ${enabledFeatures.length > 0 ? enabledFeatures.join(', ') : 'minimal form'}`, 'info');
+        
+      } catch (error) {
+        updateStatus(`Feature toggle error: ${error.message}`, 'error');
+        console.error('Feature toggle error:', error);
+      }
+    }
+
+    // Prefill form with sample data
+    function prefillForm() {
+      try {
+        if (!widget) {
+          updateStatus('No widget available', 'info');
+          return;
+        }
+
+        const sampleData = {
+          name: 'John Doe',
+          email: 'john.doe@example.com',
+          phone: '+44 20 1234 5678',
+          subject: 'Demo inquiry about BizBox widgets',
+          message: 'I am interested in learning more about integrating BizBox widgets into our website. Could you please provide more information about pricing and customization options?',
+          category: 'Sales'
+        };
+
+        Object.entries(sampleData).forEach(([field, value]) => {
+          widget.setFieldValue(field, value);
+        });
+
+        updateStatus('Form prefilled with sample data', 'info');
+        
+      } catch (error) {
+        updateStatus(`Prefill error: ${error.message}`, 'error');
+        console.error('Prefill error:', error);
+      }
+    }
+
+    // Clear form
+    function clearForm() {
+      try {
+        if (!widget) {
+          updateStatus('No widget available', 'info');
+          return;
+        }
+
+        widget.clearForm();
+        updateStatus('Form cleared', 'info');
+        
+      } catch (error) {
+        updateStatus(`Clear form error: ${error.message}`, 'error');
+        console.error('Clear form error:', error);
+      }
+    }
+
+    // Initialize everything when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      updateConfigDisplay();
+      initializeBizBox();
+      
+      // Auto-create widget after a short delay
+      setTimeout(() => {
+        createContactWidget();
+      }, 1000);
+    });
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', function() {
+      if (widget) {
+        BizBox.destroyAll();
+      }
+    });
+  </script>
+</body>
+</html>

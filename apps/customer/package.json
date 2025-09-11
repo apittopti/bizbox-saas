@@ -1,0 +1,37 @@
+{
+  "name": "@bizbox/app-customer",
+  "version": "1.0.0",
+  "description": "BizBox customer site renderer",
+  "private": true,
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@bizbox/shared-types": "workspace:*",
+    "@bizbox/shared-ui": "workspace:*",
+    "@bizbox/shared-utils": "workspace:*",
+    "@bizbox/shared-hooks": "workspace:*",
+    "@bizbox/core-api": "workspace:*",
+    "@bizbox/plugin-booking": "workspace:*",
+    "@bizbox/plugin-ecommerce": "workspace:*",
+    "@bizbox/plugin-website-builder": "workspace:*",
+    "@bizbox/plugin-payments": "workspace:*",
+    "next": "^14.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "devDependencies": {
+    "@bizbox/eslint-config": "workspace:*",
+    "@bizbox/typescript-config": "workspace:*",
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "eslint": "^8.0.0",
+    "eslint-config-next": "^14.0.0",
+    "typescript": "^5.0.0"
+  }
+}

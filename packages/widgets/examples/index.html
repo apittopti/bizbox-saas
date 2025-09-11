@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BizBox Widgets - Complete Demo</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    
+    .hero {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: white;
+    }
+    
+    .hero h1 {
+      font-size: 3rem;
+      margin: 0 0 1rem 0;
+      font-weight: 700;
+    }
+    
+    .hero p {
+      font-size: 1.2rem;
+      margin: 0 0 2rem 0;
+      opacity: 0.9;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+      background: white;
+      border-radius: 20px 20px 0 0;
+      min-height: calc(100vh - 200px);
+    }
+    
+    .widgets-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 2rem;
+      margin: 2rem 0;
+    }
+    
+    .widget-demo {
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      overflow: hidden;
+      background: white;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    .widget-header {
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      color: white;
+      padding: 1.5rem;
+      text-align: center;
+    }
+    
+    .widget-header h3 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+    
+    .widget-header p {
+      margin: 0;
+      opacity: 0.9;
+      font-size: 0.9rem;
+    }
+    
+    .widget-content {
+      height: 500px;
+      overflow-y: auto;
+    }
+    
+    .widget-footer {
+      padding: 1rem 1.5rem;
+      background: #f9fafb;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 0.9rem;
+    }
+    
+    .btn-primary {
+      background: #3b82f6;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: #2563eb;
+    }
+    
+    .btn-secondary {
+      background: #e5e7eb;
+      color: #374151;
+    }
+    
+    .btn-secondary:hover {
+      background: #d1d5db;
+    }
+    
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin: 2rem 0;
+    }
+    
+    .stat {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #3b82f6;
+      margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+      color: #6b7280;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.025em;
+    }
+    
+    .global-controls {
+      background: #1f2937;
+      color: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin: 2rem 0;
+    }
+    
+    .global-controls h3 {
+      margin: 0 0 1rem 0;
+      color: #f9fafb;
+    }
+    
+    .control-group {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+    
+    .control-group label {
+      font-weight: 500;
+      min-width: 120px;
+    }
+    
+    .control-group select {
+      padding: 0.5rem;
+      border: 1px solid #4b5563;
+      border-radius: 4px;
+      background: #374151;
+      color: white;
+    }
+    
+    .integration-example {
+      background: #1f2937;
+      color: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin: 2rem 0;
+      font-family: 'Courier New', monospace;
+    }
+    
+    .integration-example h3 {
+      margin: 0 0 1rem 0;
+      color: #f9fafb;
+      font-family: system-ui;
+    }
+    
+    .integration-example pre {
+      margin: 0;
+      white-space: pre-wrap;
+      font-size: 0.85rem;
+      overflow-x: auto;
+    }
+    
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: 2rem;
+      }
+      
+      .widgets-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .widget-content {
+        height: 400px;
+      }
+      
+      .control-group {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .control-group label {
+        min-width: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="hero">
+    <h1>🚀 BizBox Widgets</h1>
+    <p>Embeddable components for external websites - Complete integration demo</p>
+  </div>
+
+  <div class="container">
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-value" id="total-widgets">0</div>
+        <div class="stat-label">Active Widgets</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="total-events">0</div>
+        <div class="stat-label">Events Fired</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="api-calls">0</div>
+        <div class="stat-label">API Calls</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="load-time">-</div>
+        <div class="stat-label">Load Time (ms)</div>
+      </div>
+    </div>
+
+    <div class="global-controls">
+      <h3>⚙️ Global Controls</h3>
+      <div class="control-group">
+        <label>Theme:</label>
+        <select id="theme-select">
+          <option value="modern">Modern</option>
+          <option value="minimal">Minimal</option>
+          <option value="corporate">Corporate</option>
+          <option value="creative">Creative</option>
+        </select>
+        <button class="btn btn-primary" onclick="applyTheme()">Apply Theme</button>
+      </div>
+      <div class="control-group">
+        <label>Debug Mode:</label>
+        <button class="btn btn-secondary" id="debug-btn" onclick="toggleDebug()">Enable Debug</button>
+        <button class="btn btn-secondary" onclick="refreshAllWidgets()">Refresh All</button>
+        <button class="btn btn-secondary" onclick="destroyAllWidgets()">Destroy All</button>
+      </div>
+    </div>
+
+    <div class="widgets-grid">
+      <!-- Booking Widget -->
+      <div class="widget-demo">
+        <div class="widget-header">
+          <h3>🛎️ Booking Widget</h3>
+          <p>Complete appointment booking solution</p>
+        </div>
+        <div class="widget-content">
+          <div id="booking-widget-demo"></div>
+        </div>
+        <div class="widget-footer">
+          <span id="booking-status">Not initialized</span>
+          <div>
+            <button class="btn btn-primary" onclick="initBookingWidget()">Initialize</button>
+            <a href="booking.html" class="btn btn-secondary">Full Demo</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Product Catalog Widget -->
+      <div class="widget-demo">
+        <div class="widget-header">
+          <h3>🛍️ Product Catalog</h3>
+          <p>E-commerce with shopping cart</p>
+        </div>
+        <div class="widget-content">
+          <div id="products-widget-demo"></div>
+        </div>
+        <div class="widget-footer">
+          <span id="products-status">Not initialized</span>
+          <div>
+            <button class="btn btn-primary" onclick="initProductsWidget()">Initialize</button>
+            <a href="products.html" class="btn btn-secondary">Full Demo</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact Form Widget -->
+      <div class="widget-demo">
+        <div class="widget-header">
+          <h3>📝 Contact Form</h3>
+          <p>Professional contact forms</p>
+        </div>
+        <div class="widget-content">
+          <div id="contact-widget-demo"></div>
+        </div>
+        <div class="widget-footer">
+          <span id="contact-status">Not initialized</span>
+          <div>
+            <button class="btn btn-primary" onclick="initContactWidget()">Initialize</button>
+            <a href="contact.html" class="btn btn-secondary">Full Demo</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="integration-example">
+      <h3>🔧 Quick Integration</h3>
+      <pre id="integration-code">// Simple initialization
+BizBox.init({
+  tenantId: 'your-tenant-id',
+  theme: 'modern',
+  apiBaseUrl: 'https://api.bizbox.co.uk'
+});
+
+// Create widgets programmatically
+const bookingWidget = BizBox.createBookingWidget('booking-container', {
+  tenantId: 'your-tenant-id',
+  serviceId: 'service-123',
+  onBookingComplete: (booking) => {
+    console.log('Booking created:', booking);
+  }
+});
+
+// Or use HTML data attributes for auto-discovery
+&lt;div data-bizbox-widget="booking" 
+     data-bizbox-config='{"tenantId": "your-tenant-id"}'&gt;
+&lt;/div&gt;</pre>
+    </div>
+  </div>
+
+  <!-- BizBox Widget Script -->
+  <script src="../dist/embed.js"></script>
+  
+  <script>
+    let debugMode = false;
+    let eventCount = 0;
+    let apiCalls = 0;
+    let loadStartTime = Date.now();
+
+    // Widget instances
+    const widgets = {
+      booking: null,
+      products: null,
+      contact: null
+    };
+
+    // Initialize BizBox
+    function initializeBizBox() {
+      try {
+        BizBox.init({
+          tenantId: 'demo-tenant-123',
+          theme: 'modern',
+          debug: debugMode
+        });
+
+        // Global event listeners for statistics
+        BizBox.on('*', (data) => {
+          eventCount++;
+          updateStats();
+          if (debugMode) {
+            console.log('Widget event:', data);
+          }
+        });
+
+        // Simulate API call tracking
+        const originalFetch = window.fetch;
+        window.fetch = function(...args) {
+          if (args[0].includes('bizbox') || args[0].includes('api')) {
+            apiCalls++;
+            updateStats();
+          }
+          return originalFetch.apply(this, args);
+        };
+
+        console.log('✅ BizBox initialized successfully');
+        updateStats();
+        
+      } catch (error) {
+        console.error('❌ BizBox initialization error:', error);
+      }
+    }
+
+    // Update statistics
+    function updateStats() {
+      const stats = BizBox.getStats();
+      document.getElementById('total-widgets').textContent = stats.totalWidgets;
+      document.getElementById('total-events').textContent = eventCount;
+      document.getElementById('api-calls').textContent = apiCalls;
+      document.getElementById('load-time').textContent = Date.now() - loadStartTime;
+    }
+
+    // Initialize booking widget
+    function initBookingWidget() {
+      try {
+        if (widgets.booking) {
+          document.getElementById('booking-status').textContent = 'Already initialized';
+          return;
+        }
+
+        widgets.booking = BizBox.createBookingWidget('booking-widget-demo', {
+          tenantId: 'demo-tenant-123',
+          showPricing: true,
+          onBookingComplete: (booking) => {
+            document.getElementById('booking-status').textContent = `Booking: ${booking.id}`;
+          }
+        });
+
+        document.getElementById('booking-status').textContent = 'Initialized';
+        updateStats();
+      } catch (error) {
+        document.getElementById('booking-status').textContent = `Error: ${error.message}`;
+        console.error('Booking widget error:', error);
+      }
+    }
+
+    // Initialize products widget
+    function initProductsWidget() {
+      try {
+        if (widgets.products) {
+          document.getElementById('products-status').textContent = 'Already initialized';
+          return;
+        }
+
+        widgets.products = BizBox.createProductCatalogWidget('products-widget-demo', {
+          tenantId: 'demo-tenant-123',
+          showCart: true,
+          productsPerPage: 6,
+          onAddToCart: (item) => {
+            document.getElementById('products-status').textContent = `Added: ${item.productId}`;
+          }
+        });
+
+        document.getElementById('products-status').textContent = 'Initialized';
+        updateStats();
+      } catch (error) {
+        document.getElementById('products-status').textContent = `Error: ${error.message}`;
+        console.error('Products widget error:', error);
+      }
+    }
+
+    // Initialize contact widget
+    function initContactWidget() {
+      try {
+        if (widgets.contact) {
+          document.getElementById('contact-status').textContent = 'Already initialized';
+          return;
+        }
+
+        widgets.contact = BizBox.createContactFormWidget('contact-widget-demo', {
+          tenantId: 'demo-tenant-123',
+          showPhone: true,
+          categories: ['Demo', 'Support', 'Sales'],
+          onSubmit: (result) => {
+            document.getElementById('contact-status').textContent = `Submitted: ${result.id}`;
+          }
+        });
+
+        document.getElementById('contact-status').textContent = 'Initialized';
+        updateStats();
+      } catch (error) {
+        document.getElementById('contact-status').textContent = `Error: ${error.message}`;
+        console.error('Contact widget error:', error);
+      }
+    }
+
+    // Apply theme
+    function applyTheme() {
+      const theme = document.getElementById('theme-select').value;
+      BizBox.updateConfig({ theme });
+      BizBox.refreshAll();
+      console.log(`Theme changed to: ${theme}`);
+    }
+
+    // Toggle debug mode
+    function toggleDebug() {
+      debugMode = !debugMode;
+      const debugBtn = document.getElementById('debug-btn');
+      debugBtn.textContent = debugMode ? 'Disable Debug' : 'Enable Debug';
+      debugBtn.className = debugMode ? 'btn btn-secondary' : 'btn btn-secondary';
+      
+      BizBox.setDebugMode(debugMode);
+      console.log(`Debug mode: ${debugMode ? 'enabled' : 'disabled'}`);
+    }
+
+    // Refresh all widgets
+    function refreshAllWidgets() {
+      BizBox.refreshAll();
+      console.log('All widgets refreshed');
+    }
+
+    // Destroy all widgets
+    function destroyAllWidgets() {
+      BizBox.destroyAll();
+      
+      // Reset widget references
+      widgets.booking = null;
+      widgets.products = null;
+      widgets.contact = null;
+      
+      // Update status displays
+      document.getElementById('booking-status').textContent = 'Destroyed';
+      document.getElementById('products-status').textContent = 'Destroyed';
+      document.getElementById('contact-status').textContent = 'Destroyed';
+      
+      updateStats();
+      console.log('All widgets destroyed');
+    }
+
+    // Auto-initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      initializeBizBox();
+      
+      // Auto-initialize widgets with delay for better demo effect
+      setTimeout(() => initBookingWidget(), 1000);
+      setTimeout(() => initProductsWidget(), 1500);
+      setTimeout(() => initContactWidget(), 2000);
+    });
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', function() {
+      destroyAllWidgets();
+    });
+
+    // Update integration code based on current theme
+    document.getElementById('theme-select').addEventListener('change', function() {
+      const theme = this.value;
+      const code = `// Simple initialization
+BizBox.init({
+  tenantId: 'your-tenant-id',
+  theme: '${theme}',
+  apiBaseUrl: 'https://api.bizbox.co.uk'
+});
+
+// Create widgets programmatically
+const bookingWidget = BizBox.createBookingWidget('booking-container', {
+  tenantId: 'your-tenant-id',
+  serviceId: 'service-123',
+  onBookingComplete: (booking) => {
+    console.log('Booking created:', booking);
+  }
+});
+
+// Or use HTML data attributes for auto-discovery
+<div data-bizbox-widget="booking" 
+     data-bizbox-config='{"tenantId": "your-tenant-id"}'">
+</div>`;
+      
+      document.getElementById('integration-code').textContent = code;
+    });
+  </script>
+</body>
+</html>

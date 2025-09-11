@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BizBox Booking Widget Example</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+      background: #f5f5f5;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+    
+    .header h1 {
+      color: #1f2937;
+      margin-bottom: 0.5rem;
+    }
+    
+    .header p {
+      color: #6b7280;
+      font-size: 1.1rem;
+    }
+    
+    .widget-container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      margin: 2rem 0;
+      overflow: hidden;
+    }
+    
+    .config-panel {
+      background: #1f2937;
+      color: white;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      overflow-x: auto;
+    }
+    
+    .config-panel h3 {
+      margin: 0 0 1rem 0;
+      color: #f9fafb;
+    }
+    
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      font-size: 0.9rem;
+    }
+    
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin: 3rem 0;
+    }
+    
+    .feature {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .feature h3 {
+      margin: 0 0 1rem 0;
+      color: #1f2937;
+    }
+    
+    .feature ul {
+      margin: 0;
+      padding-left: 1.5rem;
+      color: #6b7280;
+    }
+    
+    .controls {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+    
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background: #3b82f6;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: #2563eb;
+    }
+    
+    .btn-secondary {
+      background: #e5e7eb;
+      color: #374151;
+    }
+    
+    .btn-secondary:hover {
+      background: #d1d5db;
+    }
+    
+    .status {
+      padding: 1rem;
+      border-radius: 6px;
+      margin-bottom: 1rem;
+      font-family: monospace;
+      font-size: 0.9rem;
+    }
+    
+    .status-info {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e40af;
+    }
+    
+    .status-success {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #15803d;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🛎️ BizBox Booking Widget</h1>
+      <p>Complete appointment booking solution for your website</p>
+    </div>
+
+    <div class="config-panel">
+      <h3>Configuration Example</h3>
+      <pre id="config-display">Loading configuration...</pre>
+    </div>
+
+    <div class="controls">
+      <button class="btn btn-primary" onclick="createBookingWidget()">Initialize Widget</button>
+      <button class="btn btn-secondary" onclick="destroyWidget()">Destroy Widget</button>
+      <button class="btn btn-secondary" onclick="toggleTheme()">Toggle Theme</button>
+      <button class="btn btn-secondary" onclick="enableDebug()">Enable Debug</button>
+    </div>
+
+    <div id="status" class="status status-info">
+      Widget not initialized. Click "Initialize Widget" to start.
+    </div>
+
+    <!-- Widget Container -->
+    <div class="widget-container">
+      <div id="booking-widget" style="min-height: 400px;">
+        <!-- Booking widget will be rendered here -->
+      </div>
+    </div>
+
+    <div class="features">
+      <div class="feature">
+        <h3>✨ Key Features</h3>
+        <ul>
+          <li>Multi-step booking process</li>
+          <li>Service selection with pricing</li>
+          <li>Staff member selection</li>
+          <li>Interactive calendar</li>
+          <li>Time slot availability</li>
+          <li>Customer details form</li>
+          <li>Booking confirmation</li>
+        </ul>
+      </div>
+      
+      <div class="feature">
+        <h3>🎨 Customization</h3>
+        <ul>
+          <li>Multiple built-in themes</li>
+          <li>Custom color schemes</li>
+          <li>Responsive design</li>
+          <li>Brand-compatible styling</li>
+          <li>Font customization</li>
+        </ul>
+      </div>
+      
+      <div class="feature">
+        <h3>⚙️ Configuration</h3>
+        <ul>
+          <li>Flexible service selection</li>
+          <li>Optional pricing display</li>
+          <li>Guest booking support</li>
+          <li>Custom event callbacks</li>
+          <li>API integration</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="config-panel">
+      <h3>HTML Integration</h3>
+      <pre>&lt;!-- Simple HTML embedding --&gt;
+&lt;div id="booking-widget" 
+     data-bizbox-widget="booking"
+     data-bizbox-config='{"tenantId": "demo-tenant", "serviceId": "service_123"}'&gt;
+&lt;/div&gt;
+
+&lt;!-- Include the widget script --&gt;
+&lt;script src="https://widgets.bizbox.co.uk/embed.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  BizBox.init({
+    tenantId: 'demo-tenant',
+    theme: 'modern',
+    primaryColor: '#3b82f6'
+  });
+&lt;/script&gt;</pre>
+    </div>
+  </div>
+
+  <!-- BizBox Widget Script -->
+  <script src="../dist/embed.js"></script>
+  
+  <script>
+    let widget = null;
+    let currentTheme = 'modern';
+    const themes = ['modern', 'minimal', 'corporate', 'creative'];
+    let themeIndex = 0;
+
+    // Configuration object
+    const config = {
+      tenantId: 'demo-tenant-123',
+      apiBaseUrl: 'https://api.bizbox.co.uk',
+      theme: currentTheme,
+      showPricing: true,
+      allowGuestBooking: true,
+      onBookingComplete: (booking) => {
+        updateStatus(`Booking created successfully! ID: ${booking.id}`, 'success');
+        console.log('Booking completed:', booking);
+      },
+      onBookingCancelled: (bookingId) => {
+        updateStatus(`Booking cancelled: ${bookingId}`, 'info');
+        console.log('Booking cancelled:', bookingId);
+      }
+    };
+
+    // Update config display
+    function updateConfigDisplay() {
+      document.getElementById('config-display').textContent = JSON.stringify(config, null, 2);
+    }
+
+    // Update status message
+    function updateStatus(message, type = 'info') {
+      const statusEl = document.getElementById('status');
+      statusEl.textContent = message;
+      statusEl.className = `status status-${type}`;
+    }
+
+    // Initialize BizBox
+    function initializeBizBox() {
+      try {
+        BizBox.init({
+          tenantId: config.tenantId,
+          apiBaseUrl: config.apiBaseUrl,
+          theme: config.theme,
+          debug: true
+        });
+        
+        // Add global event listeners
+        BizBox.on('service:selected', (data) => {
+          console.log('Service selected:', data);
+          updateStatus(`Service selected: ${data.service.name}`, 'info');
+        });
+        
+        BizBox.on('staff:selected', (data) => {
+          console.log('Staff selected:', data);
+          const staffName = data.staff ? data.staff.name : 'Any available';
+          updateStatus(`Staff selected: ${staffName}`, 'info');
+        });
+        
+        BizBox.on('timeslot:selected', (data) => {
+          console.log('Time slot selected:', data);
+          updateStatus(`Time slot selected: ${new Date(data.timeSlot.startTime).toLocaleString()}`, 'info');
+        });
+
+        updateStatus('BizBox initialized successfully', 'success');
+      } catch (error) {
+        updateStatus(`Initialization error: ${error.message}`, 'error');
+        console.error('BizBox initialization error:', error);
+      }
+    }
+
+    // Create booking widget
+    function createBookingWidget() {
+      try {
+        if (widget) {
+          updateStatus('Widget already exists. Destroy it first.', 'info');
+          return;
+        }
+
+        widget = BizBox.createBookingWidget('booking-widget', config);
+        updateStatus('Booking widget created successfully', 'success');
+      } catch (error) {
+        updateStatus(`Widget creation error: ${error.message}`, 'error');
+        console.error('Widget creation error:', error);
+      }
+    }
+
+    // Destroy widget
+    function destroyWidget() {
+      try {
+        if (!widget) {
+          updateStatus('No widget to destroy', 'info');
+          return;
+        }
+
+        BizBox.destroyWidget('booking-widget');
+        widget = null;
+        updateStatus('Widget destroyed', 'info');
+      } catch (error) {
+        updateStatus(`Widget destruction error: ${error.message}`, 'error');
+        console.error('Widget destruction error:', error);
+      }
+    }
+
+    // Toggle theme
+    function toggleTheme() {
+      themeIndex = (themeIndex + 1) % themes.length;
+      currentTheme = themes[themeIndex];
+      config.theme = currentTheme;
+
+      BizBox.updateConfig({ theme: currentTheme });
+      BizBox.refreshAll();
+      
+      updateConfigDisplay();
+      updateStatus(`Theme changed to: ${currentTheme}`, 'info');
+    }
+
+    // Enable debug mode
+    function enableDebug() {
+      BizBox.setDebugMode(true);
+      updateStatus('Debug mode enabled - check browser console', 'info');
+    }
+
+    // Initialize everything when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      updateConfigDisplay();
+      initializeBizBox();
+      
+      // Auto-create widget after a short delay
+      setTimeout(() => {
+        createBookingWidget();
+      }, 1000);
+    });
+
+    // Mock API responses for demo purposes
+    window.addEventListener('beforeunload', function() {
+      if (widget) {
+        BizBox.destroyAll();
+      }
+    });
+  </script>
+</body>
+</html>

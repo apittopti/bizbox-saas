@@ -1,0 +1,206 @@
+# Infrastructure Monitoring and Health Checks
+
+name: Infrastructure Monitoring
+
+on:
+  schedule:
+    # Health checks every 15 minutes
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+jobs:
+  health-check:
+    name: Health Check
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        service:
+          - name: Landing
+            url: https://bizbox.yourdomain.com
+            endpoint: /api/health
+          - name: Admin
+            url: https://admin.bizbox.yourdomain.com
+            endpoint: /api/health
+          - name: Builder
+            url: https://builder.bizbox.yourdomain.com
+            endpoint: /api/health
+          - name: Customer
+            url: https://app.bizbox.yourdomain.com
+            endpoint: /api/health
+            
+    steps:
+      - name: Health check - ${{ matrix.service.name }}
+        id: health
+        run: |
+          echo "Checking health of ${{ matrix.service.name }}..."
+          
+          response=$(curl -s -w "HTTPSTATUS:%{http_code};TIME:%{time_total}" \
+            "${{ matrix.service.url }}${{ matrix.service.endpoint }}" || echo "HTTPSTATUS:000;TIME:0")
+          
+          http_code=$(echo $response | cut -d';' -f1 | cut -d':' -f2)
+          time_total=$(echo $response | cut -d';' -f2 | cut -d':' -f2)
+          
+          echo "http_code=$http_code" >> $GITHUB_OUTPUT
+          echo "time_total=$time_total" >> $GITHUB_OUTPUT
+          
+          if [ "$http_code" -ne 200 ]; then
+            echo "Health check failed for ${{ matrix.service.name }}"
+            echo "HTTP Code: $http_code"
+            echo "Response time: $time_total"
+            exit 1
+          fi
+          
+          echo "Health check passed for ${{ matrix.service.name }}"
+          echo "HTTP Code: $http_code"
+          echo "Response time: $time_total"
+          
+      - name: Report metrics
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const metrics = {
+              service: '${{ matrix.service.name }}',
+              status: '${{ steps.health.outcome }}',
+              http_code: '${{ steps.health.outputs.http_code }}',
+              response_time: parseFloat('${{ steps.health.outputs.time_total }}'),
+              timestamp: new Date().toISOString()
+            };
+            
+            // Store metrics (this could be sent to monitoring service)
+            console.log('Service Metrics:', JSON.stringify(metrics, null, 2));
+            
+      - name: Alert on failure
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          channel: '#alerts'
+          text: |
+            🚨 Health check failed for ${{ matrix.service.name }}
+            URL: ${{ matrix.service.url }}${{ matrix.service.endpoint }}
+            HTTP Code: ${{ steps.health.outputs.http_code }}
+            Response Time: ${{ steps.health.outputs.time_total }}s
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+  performance-monitoring:
+    name: Performance Monitoring
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '*/15 * * * *'
+    
+    steps:
+      - name: Check system resources
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.COOLIFY_HOST }}
+          username: ${{ secrets.COOLIFY_USER }}
+          key: ${{ secrets.COOLIFY_SSH_KEY }}
+          script: |
+            echo "=== System Resource Check ==="
+            
+            # CPU Usage
+            CPU_USAGE=$(top -bn1 | grep "Cpu(s)" | awk '{print $2}' | cut -d'%' -f1 | cut -d',' -f1)
+            echo "CPU Usage: ${CPU_USAGE}%"
+            
+            # Memory Usage
+            MEMORY_USAGE=$(free | grep Mem | awk '{printf("%.1f", $3/$2 * 100.0)}')
+            echo "Memory Usage: ${MEMORY_USAGE}%"
+            
+            # Disk Usage
+            DISK_USAGE=$(df -h / | awk 'NR==2{printf "%s", $5}')
+            echo "Disk Usage: ${DISK_USAGE}"
+            
+            # Docker Container Status
+            echo "=== Container Status ==="
+            docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+            
+            # Database Connection Pool
+            echo "=== Database Status ==="
+            docker exec bizbox-postgres psql -U bizbox_user -d bizbox -c "
+              SELECT 
+                count(*) as active_connections,
+                (SELECT setting::int FROM pg_settings WHERE name='max_connections') as max_connections
+              FROM pg_stat_activity 
+              WHERE state = 'active';
+            "
+            
+            # Alert if resources are high
+            if (( $(echo "$CPU_USAGE > 80" | bc -l) )); then
+              echo "HIGH_CPU_USAGE=true" >> $GITHUB_ENV
+            fi
+            
+            if (( $(echo "$MEMORY_USAGE > 85" | bc -l) )); then
+              echo "HIGH_MEMORY_USAGE=true" >> $GITHUB_ENV
+            fi
+            
+      - name: Alert on high resource usage
+        if: env.HIGH_CPU_USAGE == 'true' || env.HIGH_MEMORY_USAGE == 'true'
+        uses: 8398a7/action-slack@v3
+        with:
+          status: warning
+          channel: '#infrastructure'
+          text: |
+            ⚠️ High resource usage detected on production server
+            
+            Please check server resources:
+            - SSH: ssh ${{ secrets.COOLIFY_USER }}@${{ secrets.COOLIFY_HOST }}
+            - Monitor: docker stats
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+  ssl-certificate-check:
+    name: SSL Certificate Check
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 6 * * *'  # Daily at 6 AM
+    
+    strategy:
+      matrix:
+        domain:
+          - bizbox.yourdomain.com
+          - admin.bizbox.yourdomain.com
+          - builder.bizbox.yourdomain.com
+          - app.bizbox.yourdomain.com
+          
+    steps:
+      - name: Check SSL certificate - ${{ matrix.domain }}
+        run: |
+          echo "Checking SSL certificate for ${{ matrix.domain }}..."
+          
+          # Get certificate expiration date
+          expiry_date=$(echo | openssl s_client -servername ${{ matrix.domain }} \
+            -connect ${{ matrix.domain }}:443 2>/dev/null | \
+            openssl x509 -noout -dates | grep "notAfter" | cut -d= -f2)
+          
+          # Calculate days until expiry
+          expiry_epoch=$(date -d "$expiry_date" +%s)
+          current_epoch=$(date +%s)
+          days_until_expiry=$(( (expiry_epoch - current_epoch) / 86400 ))
+          
+          echo "Certificate expires on: $expiry_date"
+          echo "Days until expiry: $days_until_expiry"
+          
+          # Alert if certificate expires within 30 days
+          if [ $days_until_expiry -lt 30 ]; then
+            echo "SSL_EXPIRING=true" >> $GITHUB_ENV
+            echo "DOMAIN=${{ matrix.domain }}" >> $GITHUB_ENV
+            echo "DAYS_UNTIL_EXPIRY=$days_until_expiry" >> $GITHUB_ENV
+          fi
+          
+      - name: Alert on SSL certificate expiring
+        if: env.SSL_EXPIRING == 'true'
+        uses: 8398a7/action-slack@v3
+        with:
+          status: warning
+          channel: '#infrastructure'
+          text: |
+            🔒 SSL Certificate expiring soon!
+            
+            Domain: ${{ env.DOMAIN }}
+            Days until expiry: ${{ env.DAYS_UNTIL_EXPIRY }}
+            
+            Please renew the certificate to avoid service disruption.
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
