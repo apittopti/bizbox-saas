@@ -1,25 +1,17 @@
 FROM node:18-alpine AS base
 RUN apk add --no-cache libc6-compat
+RUN npm install -g pnpm
 WORKDIR /app
 
 FROM base AS installer
 ARG APP_NAME
 COPY . .
 
-# Install dependencies for shared packages first
-RUN cd packages/shared/types && npm install
-RUN cd packages/shared/utils && npm install
-RUN cd packages/shared/hooks && npm install
-RUN cd packages/shared/ui && npm install
+# Install all dependencies using pnpm
+RUN pnpm install
 
-# Build shared packages that exist
-RUN cd packages/shared/types && npm run build
-RUN cd packages/shared/utils && npm run build
-RUN cd packages/shared/hooks && npm run build
-
-# Finally, install and build the specific app
-RUN cd apps/${APP_NAME} && npm install
-RUN cd apps/${APP_NAME} && npm run build
+# Build the specific app using pnpm
+RUN pnpm --filter @bizbox/app-${APP_NAME} build
 
 FROM base AS runner
 WORKDIR /app
