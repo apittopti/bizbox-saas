@@ -11,6 +11,12 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@bizbox/core-api": "file:../../packages/core/api",
+    "@bizbox/core-auth": "file:../../packages/core/auth",
+    "@bizbox/shared-hooks": "file:../../packages/shared/hooks",
+    "@bizbox/shared-types": "file:../../packages/shared/types",
+    "@bizbox/shared-ui": "file:../../packages/shared/ui",
+    "@bizbox/shared-utils": "file:../../packages/shared/utils",
     "@next/font": "^14.0.0",
     "@radix-ui/react-accordion": "^1.1.2",
     "@radix-ui/react-alert-dialog": "^1.0.5",
@@ -53,6 +59,8 @@
     "zustand": "^4.4.0"
   },
   "devDependencies": {
+    "@bizbox/eslint-config": "file:../../packages/tools/eslint-config",
+    "@bizbox/typescript-config": "file:../../packages/tools/typescript-config",
     "@types/node": "^20.0.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
