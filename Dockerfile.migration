@@ -1,150 +1,132 @@
-FROM node:20-alpine AS base
+# BizBox Platform - Database Migration Container
+# Handles database schema migrations and initialization
 
-# Install dependencies only when needed
-FROM base AS deps
-RUN apk add --no-cache libc6-compat
+FROM node:18-alpine AS base
+
+# Install system dependencies
+RUN apk add --no-cache \
+    libc6-compat \
+    python3 \
+    make \
+    g++ \
+    curl \
+    postgresql-client \
+    bash
+
+# Enable pnpm
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable && corepack prepare pnpm@8.0.0 --activate
+
+# Configure pnpm for network resilience
+RUN pnpm config set registry https://registry.npmjs.org/ && \
+    pnpm config set network-timeout 300000 && \
+    pnpm config set fetch-retries 5 && \
+    pnpm config set fetch-retry-factor 2 && \
+    pnpm config set fetch-retry-mintimeout 10000 && \
+    pnpm config set fetch-retry-maxtimeout 60000
+
 WORKDIR /app
 
-# Install pnpm
-RUN npm install -g pnpm@8.0.0
+# =============================================================================
+# DEPENDENCIES STAGE
+# =============================================================================
+FROM base AS dependencies
 
 # Copy workspace configuration
-COPY pnpm-workspace.yaml package.json pnpm-lock.yaml* ./
-COPY packages packages
-COPY turbo.json ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 
-# Install dependencies
-RUN pnpm install --frozen-lockfile
+# Copy package.json files for workspace structure
+COPY packages/ ./packages/
+COPY apps/ ./apps/
 
-# Migration image
-FROM base AS runner
-WORKDIR /app
+# Remove source files, keep only package.json
+RUN find packages apps -type f ! -name "package.json" -delete
+RUN find packages apps -type d -empty -delete
 
-ENV NODE_ENV production
+# Install only database-related dependencies with retry logic
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    for i in 1 2 3 4 5; do \
+        echo "Dependencies installation attempt $i..." && \
+        pnpm install --frozen-lockfile --filter=@bizbox/core-database --filter=@bizbox/core-database^... && break || \
+        (echo "Attempt $i failed, retrying in 10 seconds..." && sleep 10); \
+    done
 
-# Install pnpm
-RUN npm install -g pnpm@8.0.0
+# =============================================================================
+# MIGRATION STAGE
+# =============================================================================
+FROM dependencies AS migration
 
-# Copy dependencies and packages
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/packages ./packages
-COPY --from=deps /app/turbo.json ./turbo.json
-COPY tsconfig.json ./
+# Copy database-related source code
+COPY packages/core/database ./packages/core/database/
+COPY packages/shared/types ./packages/shared/types/
 
 # Create migration script
-RUN mkdir -p scripts
-COPY <<EOF ./scripts/migrate.js
-const { Pool } = require('pg');
+RUN cat > /app/migrate.sh << 'EOF'
+#!/bin/bash
+set -e
 
-async function migrate() {
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-  });
+echo "Starting database migration process..."
 
-  try {
-    console.log('🔄 Running database migrations...');
-    
-    // Create basic tables for BizBox multi-tenant platform
-    await pool.query(\`
-      CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-      
-      -- Users table
-      CREATE TABLE IF NOT EXISTS users (
-        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-        email VARCHAR(255) UNIQUE NOT NULL,
-        password_hash VARCHAR(255),
-        name VARCHAR(255),
-        role VARCHAR(50) DEFAULT 'user',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-      
-      -- Tenants table
-      CREATE TABLE IF NOT EXISTS tenants (
-        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-        name VARCHAR(255) NOT NULL,
-        subdomain VARCHAR(100) UNIQUE NOT NULL,
-        owner_id UUID REFERENCES users(id),
-        settings JSONB DEFAULT '{}',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-      
-      -- Tenant users junction table
-      CREATE TABLE IF NOT EXISTS tenant_users (
-        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-        tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
-        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-        role VARCHAR(50) DEFAULT 'member',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE(tenant_id, user_id)
-      );
-      
-      -- Pages table for website content
-      CREATE TABLE IF NOT EXISTS pages (
-        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-        tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
-        title VARCHAR(255) NOT NULL,
-        slug VARCHAR(255) NOT NULL,
-        content JSONB DEFAULT '{}',
-        published BOOLEAN DEFAULT false,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE(tenant_id, slug)
-      );
-      
-      -- Health check table
-      CREATE TABLE IF NOT EXISTS health_checks (
-        id SERIAL PRIMARY KEY,
-        service_name VARCHAR(100) NOT NULL,
-        status VARCHAR(20) NOT NULL,
-        checked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-      
-      -- Insert initial health check record
-      INSERT INTO health_checks (service_name, status) 
-      VALUES ('migration', 'completed') 
-      ON CONFLICT DO NOTHING;
-    \`);
-    
-    console.log('✅ Database migrations completed successfully!');
-    
-    // Test connection
-    const result = await pool.query('SELECT NOW() as current_time');
-    console.log('🔗 Database connection verified:', result.rows[0].current_time);
-    
-  } catch (error) {
-    console.error('❌ Migration failed:', error);
-    process.exit(1);
-  } finally {
-    await pool.end();
-  }
-}
+# Wait for database to be ready
+echo "Waiting for database connection..."
+until pg_isready -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME; do
+    echo "Database is unavailable - sleeping"
+    sleep 2
+done
 
-migrate();
+echo "Database is ready!"
+
+# Run migrations
+echo "Running database migrations..."
+cd /app/packages/core/database
+
+# Check if migration tool exists and run it
+if [ -f "migrate.js" ]; then
+    node migrate.js
+elif [ -f "prisma/schema.prisma" ]; then
+    pnpm prisma migrate deploy
+elif [ -d "migrations" ]; then
+    # Run SQL migrations directly
+    for migration in migrations/*.sql; do
+        if [ -f "$migration" ]; then
+            echo "Running migration: $migration"
+            psql $DATABASE_URL -f "$migration"
+        fi
+    done
+else
+    echo "No migration strategy found, running database setup..."
+    # Create basic tables if they don't exist
+    psql $DATABASE_URL -c "
+        CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";
+        CREATE EXTENSION IF NOT EXISTS \"pg_trgm\";
+        
+        -- Basic tables will be created by the application
+        SELECT 1;
+    "
+fi
+
+echo "Database migration completed successfully!"
 EOF
 
-# Health check script
-COPY <<EOF ./scripts/health-check.js
-const http = require('http');
+RUN chmod +x /app/migrate.sh
 
-const server = http.createServer((req, res) => {
-  if (req.url === '/health') {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ status: 'healthy', service: 'migration' }));
-  } else {
-    res.writeHead(404);
-    res.end('Not found');
-  }
-});
+# =============================================================================
+# RUNTIME STAGE
+# =============================================================================
+FROM base AS runtime
 
-const port = process.env.PORT || 3000;
-server.listen(port, () => {
-  console.log(\`Health check server running on port \${port}\`);
-});
-EOF
+# Copy migration files and scripts
+COPY --from=migration /app/packages/core/database ./packages/core/database/
+COPY --from=migration /app/migrate.sh ./migrate.sh
+COPY --from=migration /app/node_modules ./node_modules/
 
-# Install pg for database operations
-RUN pnpm add pg
+# Set environment variables
+ENV NODE_ENV=production
 
-CMD ["node", "scripts/migrate.js"]
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD pg_isready -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME || exit 1
+
+# Run migrations
+CMD ["./migrate.sh"]

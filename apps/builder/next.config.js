@@ -8,13 +8,8 @@ const nextConfig = {
     optimizeCss: true,
   },
   
-  env: {
-    NEXTAUTH_URL: process.env.NEXTAUTH_URL,
-    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
-  },
-  
   images: {
-    domains: ['localhost', 'bizbox.app', 'images.unsplash.com', 'via.placeholder.com'],
+    domains: ['bizbox.co.uk', 'images.unsplash.com', 'via.placeholder.com', 'picsum.photos'],
     formats: ['image/webp', 'image/avif'],
   },
   
@@ -29,40 +24,14 @@ const nextConfig = {
   poweredByHeader: false,
   generateEtags: false,
   
-  async rewrites() {
-    return [
-      {
-        source: '/api/super-admin/:path*',
-        destination: '/api/super-admin/:path*',
-      },
-    ];
-  },
-  
   async headers() {
     return [
-      {
-        source: '/api/super-admin/:path*',
-        headers: [
-          {
-            key: 'Access-Control-Allow-Origin',
-            value: '*',
-          },
-          {
-            key: 'Access-Control-Allow-Methods',
-            value: 'GET, POST, PUT, DELETE, OPTIONS',
-          },
-          {
-            key: 'Access-Control-Allow-Headers',
-            value: 'Content-Type, Authorization',
-          },
-        ],
-      },
       {
         source: '/(.*)',
         headers: [
           {
             key: 'X-Frame-Options',
-            value: 'DENY',
+            value: 'SAMEORIGIN',
           },
           {
             key: 'X-Content-Type-Options',

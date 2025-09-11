@@ -1,0 +1,190 @@
+# BizBox Platform - Docker Ignore Configuration
+# Optimized to reduce build context size and improve build performance
+
+# =============================================================================
+# NODE.JS AND PACKAGE MANAGERS
+# =============================================================================
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store
+.npm
+.yarn
+
+# =============================================================================
+# BUILD OUTPUTS AND CACHE
+# =============================================================================
+.next
+.turbo
+dist
+build
+out
+.cache
+.temp
+.tmp
+*.tsbuildinfo
+.eslintcache
+
+# =============================================================================
+# DEVELOPMENT AND EDITOR FILES
+# =============================================================================
+.git
+.gitignore
+README.md
+CHANGELOG.md
+LICENSE
+*.md
+.vscode
+.idea
+.vs
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# =============================================================================
+# ENVIRONMENT AND CONFIGURATION
+# =============================================================================
+.env*
+!.env.example
+.envrc
+config/local*
+
+# =============================================================================
+# LOGS AND TEMPORARY FILES
+# =============================================================================
+logs
+*.log
+log
+tmp
+temp
+.nyc_output
+coverage
+.coverage
+*.lcov
+
+# =============================================================================
+# TEST FILES
+# =============================================================================
+test
+tests
+**/*.test.*
+**/*.spec.*
+__tests__
+jest.config.*
+vitest.config.*
+playwright.config.*
+cypress
+cypress.config.*
+
+# =============================================================================
+# DOCKER AND DEPLOYMENT
+# =============================================================================
+Dockerfile*
+docker-compose*
+.dockerignore
+.github
+.gitlab-ci.yml
+.jenkins
+.circleci
+.travis.yml
+deployment
+deploy
+
+# =============================================================================
+# DOCUMENTATION
+# =============================================================================
+docs
+documentation
+*.md
+!README.md
+
+# =============================================================================
+# DEVELOPMENT TOOLS
+# =============================================================================
+.prettierrc*
+.prettierignore
+.eslintrc*
+.eslintignore
+.editorconfig
+.commitlint*
+.husky
+.lint-staged*
+.stylelintrc*
+
+# =============================================================================
+# PLATFORM SPECIFIC
+# =============================================================================
+*.pid
+*.seed
+*.pid.lock
+.sass-cache
+.connect.lock
+.typings
+
+# =============================================================================
+# MONOREPO SPECIFIC EXCLUSIONS
+# =============================================================================
+# Exclude everything except what we explicitly need
+**/.next/cache
+**/.turbo/cache
+**/node_modules
+**/dist
+**/build
+**/out
+
+# Keep package.json files (essential for workspace: dependencies)
+!**/package.json
+!package.json
+!pnpm-lock.yaml
+!pnpm-workspace.yaml
+!turbo.json
+
+# Keep source code
+!apps/**/*.ts
+!apps/**/*.tsx
+!apps/**/*.js
+!apps/**/*.jsx
+!apps/**/*.css
+!apps/**/*.scss
+!apps/**/*.json
+!apps/**/public/**
+
+!packages/**/*.ts
+!packages/**/*.tsx
+!packages/**/*.js
+!packages/**/*.jsx
+!packages/**/*.css
+!packages/**/*.scss
+!packages/**/*.json
+
+# =============================================================================
+# SECURITY
+# =============================================================================
+*.key
+*.pem
+*.crt
+*.cert
+*.p12
+*.pfx
+secrets
+.secrets
+
+# =============================================================================
+# DATABASE
+# =============================================================================
+*.sqlite
+*.db
+*.sql
+!**/migrations/**
+!**/seeds/**
+
+# =============================================================================
+# ANALYTICS AND MONITORING
+# =============================================================================
+.vercel
+.netlify
+.sentry-release

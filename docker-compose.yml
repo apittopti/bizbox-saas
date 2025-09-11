@@ -1,5 +1,5 @@
 # BizBox Multi-Tenant SaaS Platform
-# Docker Compose for Coolify Deployment
+# Docker Compose for Development and Production Deployment
 
 version: '3.8'
 
