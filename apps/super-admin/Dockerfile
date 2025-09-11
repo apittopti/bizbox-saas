@@ -1,25 +1,35 @@
 FROM node:20-alpine AS base
 RUN apk add --no-cache libc6-compat python3 make g++
+RUN corepack enable && corepack prepare pnpm@8.0.0 --activate
 WORKDIR /app
 
 FROM base AS deps
-# Copy all workspace packages first
-COPY packages/ ./packages/
-COPY apps/super-admin/ ./apps/super-admin/
+# Copy workspace configuration
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY packages/*/package.json ./packages/*/
+COPY packages/*/*/package.json ./packages/*/*/
+COPY apps/super-admin/package.json ./apps/super-admin/
 
-# Create package.json with resolved workspace dependencies
-RUN cd apps/super-admin && \
-    cp package.json package.json.bak && \
-    node -e "const pkg = require('./package.json'); Object.keys(pkg.dependencies || {}).forEach(key => { if (pkg.dependencies[key].startsWith('workspace:')) { const pkgPath = key.split('/')[1].replace('shared-', 'shared/').replace('core-', 'core/').replace('plugin-', 'plugins/'); pkg.dependencies[key] = 'file:../../packages/' + pkgPath; } }); Object.keys(pkg.devDependencies || {}).forEach(key => { if (pkg.devDependencies[key].startsWith('workspace:')) { const pkgPath = key.split('/')[1].replace('shared-', 'shared/').replace('core-', 'core/'); pkg.devDependencies[key] = 'file:../../packages/' + pkgPath; } }); require('fs').writeFileSync('./package.json', JSON.stringify(pkg, null, 2));" && \
-    npm install
+# Install dependencies with network retry
+RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
+    pnpm config set network-timeout 300000 && \
+    pnpm config set fetch-retries 5 && \
+    pnpm install --ignore-workspace-root-check
 
-FROM base AS builder
+FROM base AS builder  
 WORKDIR /app
 COPY --from=deps /app/ ./
+COPY . .
 COPY tsconfig.json ./
 
-# Build the app
-RUN cd apps/super-admin && npm run build
+# Build workspace packages first
+RUN pnpm turbo build --filter=@bizbox/shared-* --filter=@bizbox/core-* --filter=@bizbox/plugin-* || true
+
+# Build the super-admin app
+WORKDIR /app/apps/super-admin
+RUN echo 'module.exports = { ...require("./next.config.js"), output: "standalone" }' > next.config.standalone.js
+RUN mv next.config.standalone.js next.config.js || true
+RUN pnpm build
 
 FROM base AS runner
 WORKDIR /app
