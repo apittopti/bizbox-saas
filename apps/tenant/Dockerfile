@@ -6,7 +6,8 @@ RUN apk add --no-cache libc6-compat python3 make g++
 WORKDIR /app
 
 # Copy package files
-COPY package.json ./
+COPY package.json pnpm-workspace.yaml ./
+COPY pnpm-lock.yaml* ./
 COPY apps/tenant/package.json apps/tenant/
 COPY packages/shared/types/package.json packages/shared/types/
 COPY packages/shared/ui/package.json packages/shared/ui/
@@ -19,10 +20,10 @@ COPY packages/core/api/package.json packages/core/api/
 COPY packages packages
 COPY turbo.json ./
 
-# Install dependencies with npm - handle registry issues
-RUN npm config set registry https://registry.npmjs.org/ && \
-    npm config set strict-ssl false && \
-    npm install --legacy-peer-deps --no-optional
+# Install pnpm and dependencies (required for workspace: syntax)
+RUN npm install -g pnpm@8.0.0 && \
+    pnpm install --frozen-lockfile || \
+    pnpm install
 
 # Build the application
 FROM base AS builder
@@ -36,8 +37,8 @@ COPY tsconfig.json ./
 # Copy landing app source
 COPY apps/tenant apps/tenant
 
-# Build with npm scripts
-RUN cd apps/tenant && npm run build
+# Build with pnpm scripts  
+RUN cd apps/tenant && pnpm build
 
 # Production image
 FROM base AS runner
