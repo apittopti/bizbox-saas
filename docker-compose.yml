@@ -1,220 +1,94 @@
-# BizBox Multi-Tenant SaaS Platform
-# Docker Compose for Development and Production Deployment
-
 version: '3.8'
 
 services:
-  # Database Service
-  postgres:
-    image: postgres:16-alpine
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: ${DB_NAME:-bizbox}
-      POSTGRES_USER: ${DB_USER:-bizbox}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./packages/core/database/setup-database.sql:/docker-entrypoint-initdb.d/01-setup.sql
-    ports:
-      - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-bizbox} -d ${DB_NAME:-bizbox}"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
-
-  # Redis for Caching and Sessions
-  redis:
-    image: redis:7-alpine
-    restart: unless-stopped
-    command: redis-server --requirepass ${REDIS_PASSWORD}
-    volumes:
-      - redis_data:/data
-    ports:
-      - "6379:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-
-  # Database Migration Service
-  migration:
-    build:
-      context: .
-      dockerfile: Dockerfile.migration
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_NAME: ${DB_NAME:-bizbox}
-      DB_USER: ${DB_USER:-bizbox}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DATABASE_URL: postgresql://${DB_USER:-bizbox}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-bizbox}
-    restart: "no"
-
-  # Landing Page Application
+  # Landing page and marketplace
   landing:
     build:
       context: .
-      dockerfile: apps/landing/Dockerfile
-    restart: unless-stopped
-    depends_on:
-      migration:
-        condition: service_completed_successfully
-      redis:
-        condition: service_healthy
-    environment:
-      NODE_ENV: production
-      DATABASE_URL: postgresql://${DB_USER:-bizbox}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-bizbox}
-      REDIS_URL: redis://default:${REDIS_PASSWORD}@redis:6379
-      NEXTAUTH_URL: ${NEXTAUTH_URL}
-      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
-      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
-      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY}
-      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      dockerfile: apps/landing/Dockerfile.prod
     ports:
-      - "3000:3000"
-    labels:
-      - "coolify.managed=true"
-      - "coolify.type=application"
-      - "coolify.name=bizbox-landing"
+      - "3001:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    restart: unless-stopped
+    networks:
+      - bizbox-network
 
-  # Admin Application
+  # Admin dashboard
   admin:
     build:
       context: .
-      dockerfile: apps/admin/Dockerfile
-    restart: unless-stopped
-    depends_on:
-      migration:
-        condition: service_completed_successfully
-      redis:
-        condition: service_healthy
-    environment:
-      NODE_ENV: production
-      DATABASE_URL: postgresql://${DB_USER:-bizbox}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-bizbox}
-      REDIS_URL: redis://default:${REDIS_PASSWORD}@redis:6379
-      NEXTAUTH_URL: ${ADMIN_NEXTAUTH_URL}
-      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
-      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      dockerfile: apps/admin/Dockerfile.prod
     ports:
-      - "3001:3000"
-    labels:
-      - "coolify.managed=true"
-      - "coolify.type=application"
-      - "coolify.name=bizbox-admin"
+      - "3002:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    restart: unless-stopped
+    networks:
+      - bizbox-network
 
-  # Builder Application
+  # Page builder
   builder:
     build:
       context: .
-      dockerfile: apps/builder/Dockerfile
-    restart: unless-stopped
-    depends_on:
-      migration:
-        condition: service_completed_successfully
-      redis:
-        condition: service_healthy
-    environment:
-      NODE_ENV: production
-      DATABASE_URL: postgresql://${DB_USER:-bizbox}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-bizbox}
-      REDIS_URL: redis://default:${REDIS_PASSWORD}@redis:6379
-      NEXTAUTH_URL: ${BUILDER_NEXTAUTH_URL}
-      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      dockerfile: apps/builder/Dockerfile.prod
     ports:
-      - "3002:3000"
-    labels:
-      - "coolify.managed=true"
-      - "coolify.type=application"
-      - "coolify.name=bizbox-builder"
+      - "3003:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    restart: unless-stopped
+    networks:
+      - bizbox-network
 
-  # Customer Application (Multi-tenant)
+  # Customer portal
   customer:
     build:
       context: .
-      dockerfile: apps/customer/Dockerfile
-    restart: unless-stopped
-    depends_on:
-      migration:
-        condition: service_completed_successfully
-      redis:
-        condition: service_healthy
-    environment:
-      NODE_ENV: production
-      DATABASE_URL: postgresql://${DB_USER:-bizbox}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-bizbox}
-      REDIS_URL: redis://default:${REDIS_PASSWORD}@redis:6379
-      NEXTAUTH_URL: ${CUSTOMER_NEXTAUTH_URL}
-      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      dockerfile: apps/customer/Dockerfile.prod
     ports:
-      - "3003:3000"
-    labels:
-      - "coolify.managed=true"
-      - "coolify.type=application"
-      - "coolify.name=bizbox-customer"
+      - "3004:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    restart: unless-stopped
+    networks:
+      - bizbox-network
 
-  # Tenant Application (Customer websites)
+  # Tenant dashboard
   tenant:
     build:
       context: .
-      dockerfile: apps/tenant/Dockerfile
-    restart: unless-stopped
-    depends_on:
-      migration:
-        condition: service_completed_successfully
-      redis:
-        condition: service_healthy
+      dockerfile: apps/tenant/Dockerfile.prod
+    ports:
+      - "3005:3000"
     environment:
-      NODE_ENV: production
-      DATABASE_URL: postgresql://${DB_USER:-bizbox}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-bizbox}
-      REDIS_URL: redis://default:${REDIS_PASSWORD}@redis:6379
-      TENANT_MODE: multi
-    ports:
-      - "3004:3000"
-    labels:
-      - "coolify.managed=true"
-      - "coolify.type=application"
-      - "coolify.name=bizbox-tenant"
-
-  # Nginx Reverse Proxy for Multi-tenant Routing
-  nginx:
-    image: nginx:alpine
+      - NODE_ENV=production
+      - PORT=3000
     restart: unless-stopped
-    depends_on:
-      - landing
-      - admin
-      - builder
-      - customer
-      - tenant
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
-      - nginx_cache:/var/cache/nginx
-      - nginx_logs:/var/log/nginx
-      - letsencrypt_certs:/etc/letsencrypt
-    labels:
-      - "coolify.managed=true"
-      - "coolify.type=proxy"
-      - "coolify.name=bizbox-proxy"
+    networks:
+      - bizbox-network
 
-volumes:
-  postgres_data:
-    driver: local
-  redis_data:
-    driver: local
-  nginx_cache:
-    driver: local
-  nginx_logs:
-    driver: local
-  letsencrypt_certs:
-    driver: local
+  # Super admin panel
+  super-admin:
+    build:
+      context: .
+      dockerfile: apps/super-admin/Dockerfile.prod
+    ports:
+      - "3006:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    restart: unless-stopped
+    networks:
+      - bizbox-network
 
 networks:
-  default:
-    name: bizbox-network
+  bizbox-network:
+    driver: bridge
+
+volumes:
+  pnpm-store:
+    driver: local
