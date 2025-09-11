@@ -6,7 +6,8 @@ RUN apk add --no-cache libc6-compat python3 make g++
 WORKDIR /app
 
 # Copy package files
-COPY package.json ./
+COPY package.json pnpm-workspace.yaml ./
+COPY pnpm-lock.yaml* ./
 COPY apps/landing/package.json apps/landing/
 COPY packages/shared/types/package.json packages/shared/types/
 COPY packages/shared/ui/package.json packages/shared/ui/
@@ -19,13 +20,10 @@ COPY packages/core/api/package.json packages/core/api/
 COPY packages packages
 COPY turbo.json ./
 
-# Install dependencies - try without network restrictions
-RUN npm config set fetch-retry-mintimeout 20000 && \
-    npm config set fetch-retry-maxtimeout 120000 && \
-    npm config set fetch-retry-factor 10 && \
-    npm config set fetch-retries 5 && \
-    npm install --legacy-peer-deps --verbose || \
-    (echo "Network install failed, trying cache clear" && npm cache clean --force && npm install --legacy-peer-deps)
+# Install pnpm and dependencies (required for workspace: syntax)
+RUN npm install -g pnpm@8.0.0 && \
+    pnpm install --frozen-lockfile || \
+    pnpm install
 
 # Build the application
 FROM base AS builder
@@ -39,8 +37,8 @@ COPY tsconfig.json ./
 # Copy landing app source
 COPY apps/landing apps/landing
 
-# Build with npm scripts  
-RUN cd apps/landing && npm run build
+# Build with pnpm scripts  
+RUN cd apps/landing && pnpm build
 
 # Production image
 FROM base AS runner
