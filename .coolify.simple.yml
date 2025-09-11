@@ -15,7 +15,6 @@ services:
       POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./packages/core/database/setup-database.sql:/docker-entrypoint-initdb.d/01-setup.sql
     networks:
       - bizbox-network
     healthcheck:
@@ -48,21 +47,67 @@ services:
       - "coolify.type=cache"
       - "coolify.name=bizbox-redis"
 
-  # Database Migration Service
+  # Database Migration Service - Simple approach
   migration:
-    build:
-      context: .
-      dockerfile: Dockerfile.migration
+    image: postgres:16-alpine
     depends_on:
       postgres:
         condition: service_healthy
     environment:
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_NAME: ${DB_NAME:-bizbox}
-      DB_USER: ${DB_USER:-bizbox}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DATABASE_URL: postgresql://${DB_USER:-bizbox}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-bizbox}
+      PGUSER: ${DB_USER:-bizbox}
+      PGPASSWORD: ${DB_PASSWORD}
+      PGHOST: postgres
+      PGDATABASE: ${DB_NAME:-bizbox}
+    command: >
+      sh -c "
+        echo 'Waiting for PostgreSQL...' &&
+        until pg_isready -h postgres -U ${DB_USER:-bizbox} -d ${DB_NAME:-bizbox}; do sleep 2; done &&
+        echo 'Running migrations...' &&
+        psql -h postgres -U ${DB_USER:-bizbox} -d ${DB_NAME:-bizbox} -c \"
+          CREATE EXTENSION IF NOT EXISTS \\\"uuid-ossp\\\";
+          CREATE TABLE IF NOT EXISTS users (
+            id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+            email VARCHAR(255) UNIQUE NOT NULL,
+            password_hash VARCHAR(255),
+            name VARCHAR(255),
+            role VARCHAR(50) DEFAULT 'user',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          );
+          CREATE TABLE IF NOT EXISTS tenants (
+            id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+            name VARCHAR(255) NOT NULL,
+            subdomain VARCHAR(100) UNIQUE NOT NULL,
+            owner_id UUID REFERENCES users(id),
+            settings JSONB DEFAULT '{}',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          );
+          CREATE TABLE IF NOT EXISTS tenant_users (
+            id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+            tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
+            user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+            role VARCHAR(50) DEFAULT 'member',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(tenant_id, user_id)
+          );
+          CREATE TABLE IF NOT EXISTS pages (
+            id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+            tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
+            title VARCHAR(255) NOT NULL,
+            slug VARCHAR(255) NOT NULL,
+            content JSONB DEFAULT '{}',
+            published BOOLEAN DEFAULT false,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(tenant_id, slug)
+          );
+          INSERT INTO users (email, name, role) 
+          VALUES ('admin@bizbox.local', 'Super Admin', 'super_admin') 
+          ON CONFLICT (email) DO NOTHING;
+        \" &&
+        echo 'Migration completed successfully!'
+      "
     networks:
       - bizbox-network
     restart: "no"
