@@ -10,23 +10,7 @@ COPY apps/landing/ ./apps/landing/
 # Create package.json with resolved workspace dependencies
 RUN cd apps/landing && \
     cp package.json package.json.bak && \
-    node -e "
-    const pkg = require('./package.json');
-    // Replace workspace: references with file: references
-    Object.keys(pkg.dependencies || {}).forEach(key => {
-      if (pkg.dependencies[key].startsWith('workspace:')) {
-        const pkgPath = key.split('/')[1].replace('shared-', 'shared/').replace('core-', 'core/').replace('plugin-', 'plugins/');
-        pkg.dependencies[key] = 'file:../../packages/' + pkgPath;
-      }
-    });
-    Object.keys(pkg.devDependencies || {}).forEach(key => {
-      if (pkg.devDependencies[key].startsWith('workspace:')) {
-        const pkgPath = key.split('/')[1].replace('shared-', 'shared/').replace('core-', 'core/');
-        pkg.devDependencies[key] = 'file:../../packages/' + pkgPath;
-      }
-    });
-    require('fs').writeFileSync('./package.json', JSON.stringify(pkg, null, 2));
-    " && \
+    node -e "const pkg = require('./package.json'); Object.keys(pkg.dependencies || {}).forEach(key => { if (pkg.dependencies[key].startsWith('workspace:')) { const pkgPath = key.split('/')[1].replace('shared-', 'shared/').replace('core-', 'core/').replace('plugin-', 'plugins/'); pkg.dependencies[key] = 'file:../../packages/' + pkgPath; } }); Object.keys(pkg.devDependencies || {}).forEach(key => { if (pkg.devDependencies[key].startsWith('workspace:')) { const pkgPath = key.split('/')[1].replace('shared-', 'shared/').replace('core-', 'core/'); pkg.devDependencies[key] = 'file:../../packages/' + pkgPath; } }); require('fs').writeFileSync('./package.json', JSON.stringify(pkg, null, 2));" && \
     npm install
 
 FROM base AS builder
