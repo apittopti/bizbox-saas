@@ -3,18 +3,14 @@ RUN apk add --no-cache libc6-compat python3 make g++
 WORKDIR /app
 
 FROM base AS deps
-COPY package.json ./
-COPY apps/customer/package.json ./apps/customer/
-COPY packages/*/package.json ./packages/*/
-COPY packages/*/*/package.json ./packages/*/*/
+COPY . .
 RUN --mount=type=cache,id=npm,target=/root/.npm \
     npm config set registry https://registry.npmjs.org/ && \
-    npm install --workspace=apps/customer --include-workspace-root
+    cd apps/customer && npm install
 
 FROM base AS build
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/apps/customer/node_modules ./apps/customer/node_modules
-COPY . .
+COPY --from=deps /app ./
+WORKDIR /app
 
 # Build workspace packages first  
 RUN npx turbo build --filter=@bizbox/shared-* --filter=@bizbox/core-* --filter=@bizbox/plugin-* || true
