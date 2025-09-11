@@ -7,7 +7,6 @@ WORKDIR /app
 
 # Copy package files
 COPY package.json pnpm-workspace.yaml ./
-COPY pnpm-lock.yaml* ./
 COPY apps/landing/package.json apps/landing/
 COPY packages/shared/types/package.json packages/shared/types/
 COPY packages/shared/ui/package.json packages/shared/ui/
@@ -22,8 +21,7 @@ COPY turbo.json ./
 
 # Install pnpm and dependencies (required for workspace: syntax)
 RUN npm install -g pnpm@8.0.0 && \
-    pnpm install --frozen-lockfile || \
-    pnpm install
+    pnpm install --ignore-workspace-root-check
 
 # Build the application
 FROM base AS builder
