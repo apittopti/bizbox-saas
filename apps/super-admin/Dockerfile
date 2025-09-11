@@ -1,31 +1,21 @@
 FROM node:20-alpine AS base
-RUN apk add --no-cache libc6-compat python3 make g++
-RUN corepack enable && corepack prepare pnpm@8.0.0 --activate
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
 WORKDIR /app
 
 FROM base AS deps
-# Copy workspace configuration
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
-COPY packages/*/package.json ./packages/*/
-COPY packages/*/*/package.json ./packages/*/*/
-COPY apps/super-admin/package.json ./apps/super-admin/
-
-# Install dependencies with network retry
-RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
-    pnpm config set network-timeout 300000 && \
-    pnpm config set fetch-retries 5 && \
-    pnpm install --ignore-workspace-root-check
-
-FROM base AS builder  
-WORKDIR /app
-COPY --from=deps /app/ ./
 COPY . .
-COPY tsconfig.json ./
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+
+FROM base AS build
+COPY . .
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
 # Build workspace packages first
 RUN pnpm turbo build --filter=@bizbox/shared-* --filter=@bizbox/core-* --filter=@bizbox/plugin-* || true
 
-# Build the super-admin app
+# Build the super-admin app  
 WORKDIR /app/apps/super-admin
 RUN echo 'module.exports = { ...require("./next.config.js"), output: "standalone" }' > next.config.standalone.js
 RUN mv next.config.standalone.js next.config.js || true
