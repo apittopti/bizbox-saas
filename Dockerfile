@@ -1,36 +1,52 @@
-# Turborepo Multi-Stage Dockerfile for BizBox Apps
-# This file can be used to build any app in the monorepo by specifying the APP_NAME build arg
+FROM node:18-alpine AS base
 
-FROM node:20-alpine AS base
-RUN apk add --no-cache libc6-compat python3 make g++
-RUN npm install -g turbo
-
-FROM base AS installer
+FROM base AS builder
+RUN apk add --no-cache libc6-compat
+RUN apk update
 WORKDIR /app
+RUN npm install -g turbo
 COPY . .
 ARG APP_NAME
+RUN turbo prune --scope=@bizbox/app-${APP_NAME} --docker
 
-# Install dependencies for the specific app using npm
-RUN npm config set registry https://registry.npmjs.org/ && \
-    cd apps/${APP_NAME} && npm install
+FROM base AS installer
+RUN apk add --no-cache libc6-compat
+RUN apk update
+WORKDIR /app
 
-# Build the specific app
-RUN cd apps/${APP_NAME} && npm run build
+ARG APP_NAME
+
+# Install dependencies only when needed
+COPY .gitignore .gitignore
+COPY --from=builder /app/out/json/ .
+COPY --from=builder /app/out/package-lock.json ./package-lock.json
+RUN npm ci
+
+# Build the project
+COPY --from=builder /app/out/full/ .
+COPY turbo.json turbo.json
+RUN npm run build --filter=@bizbox/app-${APP_NAME}...
 
 FROM base AS runner
 WORKDIR /app
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
 
 ARG APP_NAME
+
+# Don't run production as root
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+USER nextjs
+
+COPY --from=installer /app/apps/${APP_NAME}/next.config.js .
+COPY --from=installer /app/apps/${APP_NAME}/package.json .
+
+# Automatically leverage output traces to reduce image size
 COPY --from=installer --chown=nextjs:nodejs /app/apps/${APP_NAME}/.next/standalone ./
 COPY --from=installer --chown=nextjs:nodejs /app/apps/${APP_NAME}/.next/static ./apps/${APP_NAME}/.next/static
 COPY --from=installer --chown=nextjs:nodejs /app/apps/${APP_NAME}/public ./apps/${APP_NAME}/public
 
-USER nextjs
 EXPOSE 3000
-ENV PORT 3000
-ENV NODE_ENV production
 
-ARG APP_NAME
+ENV PORT 3000
+
 CMD node apps/${APP_NAME}/server.js
