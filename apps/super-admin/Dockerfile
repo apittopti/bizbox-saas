@@ -29,9 +29,9 @@ ENV NODE_ENV production
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/apps/super-admin/.next/standalone ./
-COPY --from=builder /app/apps/super-admin/.next/static ./apps/super-admin/.next/static
-COPY --from=builder /app/apps/super-admin/public ./apps/super-admin/public
+COPY --from=build /app/apps/super-admin/.next/standalone ./
+COPY --from=build /app/apps/super-admin/.next/static ./apps/super-admin/.next/static
+COPY --from=build /app/apps/super-admin/public ./apps/super-admin/public
 
 USER nextjs
 
