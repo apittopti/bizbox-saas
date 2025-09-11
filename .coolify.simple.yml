@@ -84,7 +84,7 @@ services:
     image: nginx:alpine
     restart: unless-stopped
     ports:
-      - "3001:80"
+      - "3001:3001"
     volumes:
       - landing_html:/usr/share/nginx/html
     networks:
@@ -111,6 +111,7 @@ services:
         <a href=\"http://194.164.89.92:3005\" class=\"link\">Tenant Sites</a>
         <a href=\"http://194.164.89.92:3006\" class=\"link\">Super Admin</a>
         </div></div></body></html>' > /usr/share/nginx/html/index.html &&
+        echo 'server { listen 3001; location / { root /usr/share/nginx/html; index index.html; } }' > /etc/nginx/conf.d/default.conf &&
         nginx -g 'daemon off;'
       "
 
@@ -119,7 +120,7 @@ services:
     image: nginx:alpine
     restart: unless-stopped
     ports:
-      - "3002:80"
+      - "3002:3002"
     networks:
       - bizbox-network
     depends_on:
@@ -144,6 +145,7 @@ services:
         <div class=\"feature\"><h3>Analytics</h3><p>View platform usage statistics</p></div>
         <div class=\"feature\"><h3>Billing</h3><p>Handle payments and invoicing</p></div>
         </div></div></body></html>' > /usr/share/nginx/html/index.html &&
+        echo 'server { listen 3002; location / { root /usr/share/nginx/html; index index.html; } }' > /etc/nginx/conf.d/default.conf &&
         nginx -g 'daemon off;'
       "
 
@@ -152,7 +154,7 @@ services:
     image: nginx:alpine
     restart: unless-stopped
     ports:
-      - "3003:80"
+      - "3003:3003"
     networks:
       - bizbox-network
     depends_on:
@@ -177,6 +179,7 @@ services:
         <div class=\"tool\">Form Builder</div>
         <div class=\"tool\">Template Library</div>
         </div></div></body></html>' > /usr/share/nginx/html/index.html &&
+        echo 'server { listen 3003; location / { root /usr/share/nginx/html; index index.html; } }' > /etc/nginx/conf.d/default.conf &&
         nginx -g 'daemon off;'
       "
 
@@ -185,7 +188,7 @@ services:
     image: nginx:alpine
     restart: unless-stopped
     ports:
-      - "3004:80"
+      - "3004:3004"
     networks:
       - bizbox-network
     depends_on:
@@ -210,6 +213,7 @@ services:
         <div class=\"section\">Support</div>
         <div class=\"section\">Settings</div>
         </div></div></body></html>' > /usr/share/nginx/html/index.html &&
+        echo 'server { listen 3004; location / { root /usr/share/nginx/html; index index.html; } }' > /etc/nginx/conf.d/default.conf &&
         nginx -g 'daemon off;'
       "
 
@@ -218,7 +222,7 @@ services:
     image: nginx:alpine
     restart: unless-stopped
     ports:
-      - "3005:80"
+      - "3005:3005"
     networks:
       - bizbox-network
     depends_on:
@@ -237,6 +241,7 @@ services:
         <div class=\"tenant\">✅ Multi-tenant website renderer running on port 3005</div>
         <p>This service dynamically serves tenant-specific websites based on subdomain routing.</p>
         </div></body></html>' > /usr/share/nginx/html/index.html &&
+        echo 'server { listen 3005; location / { root /usr/share/nginx/html; index index.html; } }' > /etc/nginx/conf.d/default.conf &&
         nginx -g 'daemon off;'
       "
 
@@ -245,7 +250,7 @@ services:
     image: nginx:alpine
     restart: unless-stopped
     ports:
-      - "3006:80"
+      - "3006:3006"
     networks:
       - bizbox-network
     depends_on:
@@ -271,6 +276,7 @@ services:
         <div class=\"control\">Database Admin</div>
         <div class=\"control\">User Management</div>
         </div></div></body></html>' > /usr/share/nginx/html/index.html &&
+        echo 'server { listen 3006; location / { root /usr/share/nginx/html; index index.html; } }' > /etc/nginx/conf.d/default.conf &&
         nginx -g 'daemon off;'
       "
     environment:
