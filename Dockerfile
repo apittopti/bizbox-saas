@@ -16,7 +16,6 @@ RUN cd packages/shared/ui && npm install
 RUN cd packages/shared/types && npm run build
 RUN cd packages/shared/utils && npm run build
 RUN cd packages/shared/hooks && npm run build
-RUN cd packages/shared/ui && npm run build
 
 # Finally, install and build the specific app
 RUN cd apps/${APP_NAME} && npm install
