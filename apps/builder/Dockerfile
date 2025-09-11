@@ -6,7 +6,7 @@ RUN apk add --no-cache libc6-compat python3 make g++
 WORKDIR /app
 
 # Copy package files
-COPY package.json pnpm-workspace.yaml ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY apps/builder/package.json apps/builder/
 COPY packages/shared/types/package.json packages/shared/types/
 COPY packages/shared/ui/package.json packages/shared/ui/
@@ -21,7 +21,7 @@ COPY turbo.json ./
 
 # Install pnpm and dependencies (required for workspace: syntax)
 RUN npm install -g pnpm@8.0.0 && \
-    pnpm install --no-frozen-lockfile --ignore-workspace-root-check
+    pnpm install --ignore-scripts || pnpm install --no-frozen-lockfile
 
 # Build the application
 FROM base AS builder
