@@ -18,8 +18,8 @@
     "type-check": "tsc --noEmit"
   },
   "devDependencies": {
-    "@bizbox/eslint-config": "workspace:*",
-    "@bizbox/typescript-config": "workspace:*",
+    "@bizbox/eslint-config": "file:../../tools/eslint-config",
+    "@bizbox/typescript-config": "file:../../tools/typescript-config",
     "typescript": "^5.0.0"
   }
 }

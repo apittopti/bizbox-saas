@@ -18,8 +18,8 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@bizbox/shared-types": "workspace:*",
-    "@bizbox/core-database": "workspace:*",
+    "@bizbox/shared-types": "file:../../shared/types",
+    "@bizbox/core-database": "file:../database",
     "next-auth": "^4.24.0",
     "@auth/drizzle-adapter": "^0.3.0",
     "bcryptjs": "^2.4.3",
@@ -28,8 +28,8 @@
     "zod": "^3.22.0"
   },
   "devDependencies": {
-    "@bizbox/eslint-config": "workspace:*",
-    "@bizbox/typescript-config": "workspace:*",
+    "@bizbox/eslint-config": "file:../../tools/eslint-config",
+    "@bizbox/typescript-config": "file:../../tools/typescript-config",
     "@types/bcryptjs": "^2.4.0",
     "@types/jsonwebtoken": "^9.0.0",
     "typescript": "^5.0.0"

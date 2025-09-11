@@ -18,16 +18,16 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@bizbox/shared-types": "workspace:*",
-    "@bizbox/core-framework": "workspace:*",
-    "@bizbox/shared-ui": "workspace:*",
+    "@bizbox/shared-types": "file:../../shared/types",
+    "@bizbox/core-framework": "file:../../core/framework",
+    "@bizbox/shared-ui": "file:../../shared/ui",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "zod": "^3.22.0"
   },
   "devDependencies": {
-    "@bizbox/eslint-config": "workspace:*",
-    "@bizbox/typescript-config": "workspace:*",
+    "@bizbox/eslint-config": "file:../../tools/eslint-config",
+    "@bizbox/typescript-config": "file:../../tools/typescript-config",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
     "typescript": "^5.0.0"

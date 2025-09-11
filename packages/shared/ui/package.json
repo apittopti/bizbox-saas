@@ -18,7 +18,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@bizbox/shared-types": "workspace:*",
+    "@bizbox/shared-types": "file:../types",
     "@radix-ui/react-accordion": "^1.1.2",
     "@radix-ui/react-alert-dialog": "^1.0.5",
     "@radix-ui/react-avatar": "^1.0.4",
@@ -38,8 +38,8 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
-    "@bizbox/eslint-config": "workspace:*",
-    "@bizbox/typescript-config": "workspace:*",
+    "@bizbox/eslint-config": "file:../../tools/eslint-config",
+    "@bizbox/typescript-config": "file:../../tools/typescript-config",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
     "typescript": "^5.0.0"

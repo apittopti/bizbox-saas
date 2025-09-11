@@ -18,13 +18,13 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@bizbox/shared-types": "workspace:*",
+    "@bizbox/shared-types": "file:../types",
     "clsx": "^2.0.0",
     "zod": "^3.22.0"
   },
   "devDependencies": {
-    "@bizbox/eslint-config": "workspace:*",
-    "@bizbox/typescript-config": "workspace:*",
+    "@bizbox/eslint-config": "file:../../tools/eslint-config",
+    "@bizbox/typescript-config": "file:../../tools/typescript-config",
     "typescript": "^5.0.0"
   }
 }

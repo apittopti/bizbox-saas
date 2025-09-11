@@ -11,11 +11,11 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
-    "@bizbox/shared-types": "workspace:*",
-    "@bizbox/core-framework": "workspace:*"
+    "@bizbox/shared-types": "file:../../shared/types",
+    "@bizbox/core-framework": "file:../../core/framework"
   },
   "devDependencies": {
-    "@bizbox/typescript-config": "workspace:*",
+    "@bizbox/typescript-config": "file:../typescript-config",
     "typescript": "^5.0.0",
     "jest": "^29.5.0",
     "@types/jest": "^29.5.0",

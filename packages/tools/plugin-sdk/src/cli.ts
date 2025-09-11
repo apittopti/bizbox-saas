@@ -255,10 +255,10 @@ export class PluginCLI {
         'test:watch': 'vitest'
       },
       dependencies: {
-        '@bizbox/plugin-sdk': 'workspace:*'
+        '@bizbox/plugin-sdk': 'file:../../tools/plugin-sdk'
       },
       devDependencies: {
-        '@bizbox/typescript-config': 'workspace:*',
+        '@bizbox/typescript-config': 'file:../../tools/typescript-config',
         typescript: '^5.0.0',
         vitest: '^1.0.0'
       }

@@ -27,15 +27,15 @@
     "bizbox-db": "./dist/cli.js"
   },
   "dependencies": {
-    "@bizbox/shared-types": "workspace:*",
+    "@bizbox/shared-types": "file:../../shared/types",
     "pg": "^8.11.0",
     "drizzle-orm": "^0.28.0",
     "commander": "^11.0.0",
     "zod": "^3.22.0"
   },
   "devDependencies": {
-    "@bizbox/eslint-config": "workspace:*",
-    "@bizbox/typescript-config": "workspace:*",
+    "@bizbox/eslint-config": "file:../../tools/eslint-config",
+    "@bizbox/typescript-config": "file:../../tools/typescript-config",
     "@types/pg": "^8.10.0",
     "@types/jest": "^29.5.0",
     "jest": "^29.5.0",
