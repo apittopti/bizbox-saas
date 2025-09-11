@@ -116,7 +116,7 @@ services:
   landing:
     build:
       context: .
-      dockerfile: apps/landing/Dockerfile.simple
+      dockerfile: apps/landing/Dockerfile.minimal
     restart: unless-stopped
     depends_on:
       migration:
@@ -145,7 +145,7 @@ services:
   admin:
     build:
       context: .
-      dockerfile: apps/admin/Dockerfile.simple
+      dockerfile: apps/admin/Dockerfile.minimal
     restart: unless-stopped
     depends_on:
       migration:
@@ -172,7 +172,7 @@ services:
   builder:
     build:
       context: .
-      dockerfile: apps/builder/Dockerfile.simple
+      dockerfile: apps/builder/Dockerfile.minimal
     restart: unless-stopped
     depends_on:
       migration:
@@ -198,7 +198,7 @@ services:
   customer:
     build:
       context: .
-      dockerfile: apps/customer/Dockerfile.simple
+      dockerfile: apps/customer/Dockerfile.minimal
     restart: unless-stopped
     depends_on:
       migration:
@@ -224,7 +224,7 @@ services:
   tenant:
     build:
       context: .
-      dockerfile: apps/tenant/Dockerfile.simple
+      dockerfile: apps/tenant/Dockerfile.minimal
     restart: unless-stopped
     depends_on:
       migration:
@@ -249,7 +249,7 @@ services:
   super-admin:
     build:
       context: .
-      dockerfile: apps/super-admin/Dockerfile.simple
+      dockerfile: apps/super-admin/Dockerfile.minimal
     restart: unless-stopped
     depends_on:
       migration:

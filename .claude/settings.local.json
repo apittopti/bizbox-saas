@@ -24,7 +24,8 @@
       "Bash(find:*)",
       "Bash(for app in admin builder customer tenant super-admin)",
       "Bash(do)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(sed:*)"
     ],
     "deny": [],
     "ask": []
