@@ -25,7 +25,8 @@
       "Bash(for app in admin builder customer tenant super-admin)",
       "Bash(do)",
       "Bash(done)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []
