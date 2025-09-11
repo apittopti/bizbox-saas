@@ -31,7 +31,7 @@ services:
   landing:
     build:
       context: .
-      dockerfile: Dockerfile.turbo
+      dockerfile: Dockerfile
       args:
         APP_NAME: landing
     ports:
@@ -52,7 +52,7 @@ services:
   admin:
     build:
       context: .
-      dockerfile: Dockerfile.turbo
+      dockerfile: Dockerfile
       args:
         APP_NAME: admin
     ports:
@@ -73,7 +73,7 @@ services:
   builder:
     build:
       context: .
-      dockerfile: Dockerfile.turbo
+      dockerfile: Dockerfile
       args:
         APP_NAME: builder
     ports:
@@ -94,7 +94,7 @@ services:
   customer:
     build:
       context: .
-      dockerfile: Dockerfile.turbo
+      dockerfile: Dockerfile
       args:
         APP_NAME: customer
     ports:
@@ -113,7 +113,7 @@ services:
   tenant:
     build:
       context: .
-      dockerfile: Dockerfile.turbo
+      dockerfile: Dockerfile
       args:
         APP_NAME: tenant
     ports:
@@ -134,7 +134,7 @@ services:
   super-admin:
     build:
       context: .
-      dockerfile: Dockerfile.turbo
+      dockerfile: Dockerfile
       args:
         APP_NAME: super-admin
     ports:
