@@ -6,11 +6,21 @@ WORKDIR /app
 
 FROM base AS deps
 COPY . .
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    pnpm config set registry https://registry.npmjs.org/ && \
+    pnpm config set network-timeout 600000 && \
+    pnpm config set fetch-retries 5 && \
+    pnpm config set fetch-retry-mintimeout 20000 && \
+    pnpm config set fetch-retry-maxtimeout 120000 && \
+    pnpm install
 
 FROM base AS build
 COPY . .
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    pnpm config set registry https://registry.npmjs.org/ && \
+    pnpm config set network-timeout 600000 && \
+    pnpm config set fetch-retries 5 && \
+    pnpm install
 
 # Build workspace packages first
 RUN pnpm turbo build --filter=@bizbox/shared-* --filter=@bizbox/core-* --filter=@bizbox/plugin-* || true
