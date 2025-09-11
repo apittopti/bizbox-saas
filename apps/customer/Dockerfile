@@ -1,21 +1,27 @@
-FROM node:20-alpine AS builder
+FROM node:20-alpine AS base
+RUN apk add --no-cache libc6-compat python3 make g++
 WORKDIR /app
 
-# Install basic dependencies
-RUN apk add --no-cache curl
+FROM base AS deps
+# Copy all workspace packages first
+COPY packages/ ./packages/
+COPY apps/customer/ ./apps/customer/
 
-# Copy only the customer app
-COPY apps/customer ./apps/customer
-
-# Create a simple Next.js build
+# Create package.json with resolved workspace dependencies
 RUN cd apps/customer && \
-    npm install next react react-dom && \
-    echo '{"name": "customer", "scripts": {"build": "echo Built", "start": "node server.js"}}' > package.json && \
-    mkdir -p .next && \
-    echo 'module.exports = {async rewrites(){return []}}' > next.config.js
+    cp package.json package.json.bak && \
+    node -e "const pkg = require('./package.json'); Object.keys(pkg.dependencies || {}).forEach(key => { if (pkg.dependencies[key].startsWith('workspace:')) { const pkgPath = key.split('/')[1].replace('shared-', 'shared/').replace('core-', 'core/').replace('plugin-', 'plugins/'); pkg.dependencies[key] = 'file:../../packages/' + pkgPath; } }); Object.keys(pkg.devDependencies || {}).forEach(key => { if (pkg.devDependencies[key].startsWith('workspace:')) { const pkgPath = key.split('/')[1].replace('shared-', 'shared/').replace('core-', 'core/'); pkg.devDependencies[key] = 'file:../../packages/' + pkgPath; } }); require('fs').writeFileSync('./package.json', JSON.stringify(pkg, null, 2));" && \
+    npm install
 
-# Production image
-FROM node:20-alpine AS runner
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/ ./
+COPY tsconfig.json ./
+
+# Build the app
+RUN cd apps/customer && npm run build
+
+FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
@@ -23,11 +29,9 @@ ENV NODE_ENV production
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy the app
-COPY --from=builder --chown=nextjs:nodejs /app/apps/customer ./apps/customer
-
-# Create a simple server
-RUN echo 'const http = require("http"); const server = http.createServer((req, res) => { res.writeHead(200, {"Content-Type": "text/html"}); res.end("<h1>BizBox Customer - App Running!</h1><p>Customer portal is live on port 3000</p>"); }); server.listen(3000, () => console.log("Customer server running on port 3000"));' > apps/customer/server.js
+COPY --from=builder /app/apps/customer/.next/standalone ./
+COPY --from=builder /app/apps/customer/.next/static ./apps/customer/.next/static
+COPY --from=builder /app/apps/customer/public ./apps/customer/public
 
 USER nextjs
 
@@ -35,9 +39,5 @@ EXPOSE 3000
 
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:3000/ || exit 1
 
 CMD ["node", "apps/customer/server.js"]

@@ -1,28 +1,26 @@
 FROM node:20-alpine AS base
-
-# Install dependencies only when needed
-FROM base AS deps
 RUN apk add --no-cache libc6-compat python3 make g++
 WORKDIR /app
 
-# Copy all source files
-COPY . .
+FROM base AS deps
+# Copy all workspace packages first
+COPY packages/ ./packages/
+COPY apps/tenant/ ./apps/tenant/
 
-# Install dependencies using npm workspaces (fallback approach)
-RUN npm install --legacy-peer-deps --no-package-lock --prefer-offline || \
-    npm install --legacy-peer-deps --no-package-lock
+# Create package.json with resolved workspace dependencies
+RUN cd apps/tenant && \
+    cp package.json package.json.bak && \
+    node -e "const pkg = require('./package.json'); Object.keys(pkg.dependencies || {}).forEach(key => { if (pkg.dependencies[key].startsWith('workspace:')) { const pkgPath = key.split('/')[1].replace('shared-', 'shared/').replace('core-', 'core/').replace('plugin-', 'plugins/'); pkg.dependencies[key] = 'file:../../packages/' + pkgPath; } }); Object.keys(pkg.devDependencies || {}).forEach(key => { if (pkg.devDependencies[key].startsWith('workspace:')) { const pkgPath = key.split('/')[1].replace('shared-', 'shared/').replace('core-', 'core/'); pkg.devDependencies[key] = 'file:../../packages/' + pkgPath; } }); require('fs').writeFileSync('./package.json', JSON.stringify(pkg, null, 2));" && \
+    npm install
 
-# Build the application
 FROM base AS builder
 WORKDIR /app
+COPY --from=deps /app/ ./
+COPY tsconfig.json ./
 
-# Copy everything from deps stage
-COPY --from=deps /app ./
-
-# Build the tenant app
+# Build the app
 RUN cd apps/tenant && npm run build
 
-# Production image
 FROM base AS runner
 WORKDIR /app
 
@@ -31,13 +29,9 @@ ENV NODE_ENV production
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy built application
 COPY --from=builder /app/apps/tenant/.next/standalone ./
 COPY --from=builder /app/apps/tenant/.next/static ./apps/tenant/.next/static
 COPY --from=builder /app/apps/tenant/public ./apps/tenant/public
-
-# Copy packages for runtime dependencies
-COPY --from=builder --chown=nextjs:nodejs /app/packages ./packages
 
 USER nextjs
 
@@ -45,9 +39,5 @@ EXPOSE 3000
 
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:3000/api/health || exit 1
 
 CMD ["node", "apps/tenant/server.js"]
