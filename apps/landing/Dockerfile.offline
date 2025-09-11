@@ -1,0 +1,25 @@
+FROM node:20-alpine AS runtime
+
+WORKDIR /app
+
+# Create user
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
+
+# Copy pre-built application (expects local build)
+COPY apps/landing/.next/standalone ./
+COPY apps/landing/.next/static ./.next/static
+COPY apps/landing/public ./public
+
+# Copy any required packages
+COPY packages ./packages
+
+USER nextjs
+EXPOSE 3000
+ENV NODE_ENV=production PORT=3000 HOSTNAME="0.0.0.0"
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1
+
+CMD ["node", "server.js"]

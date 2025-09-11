@@ -21,8 +21,7 @@ COPY turbo.json ./
 
 # Install pnpm and dependencies (required for workspace: syntax)
 RUN npm install -g pnpm@8.0.0 && \
-    pnpm install --frozen-lockfile || \
-    pnpm install
+    pnpm install --no-frozen-lockfile --ignore-workspace-root-check
 
 # Build the application
 FROM base AS builder
