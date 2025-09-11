@@ -1,38 +1,31 @@
 FROM node:20-alpine AS base
-ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable
+RUN apk add --no-cache libc6-compat python3 make g++
 WORKDIR /app
 
 FROM base AS deps
-COPY . .
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    apk add --no-cache curl && \
-    pnpm config set registry https://registry.npmmirror.com/ && \
-    pnpm config set network-timeout 600000 && \
-    pnpm config set fetch-retries 10 && \
-    pnpm config set fetch-retry-mintimeout 30000 && \
-    pnpm config set fetch-retry-maxtimeout 300000 && \
-    pnpm install --no-frozen-lockfile || \
-    (pnpm config set registry https://registry.npmjs.org/ && pnpm install --no-frozen-lockfile)
+COPY package.json ./
+COPY apps/super-admin/package.json ./apps/super-admin/
+COPY packages/*/package.json ./packages/*/
+COPY packages/*/*/package.json ./packages/*/*/
+RUN --mount=type=cache,id=npm,target=/root/.npm \
+    npm config set registry https://registry.npmjs.org/ && \
+    npm config set network-timeout 600000 && \
+    npm config set fetch-retries 10 && \
+    npm install --workspace=apps/super-admin --include-workspace-root
 
 FROM base AS build
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/super-admin/node_modules ./apps/super-admin/node_modules
 COPY . .
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    pnpm config set registry https://registry.npmmirror.com/ && \
-    pnpm config set network-timeout 600000 && \
-    pnpm config set fetch-retries 10 && \
-    pnpm install --no-frozen-lockfile || \
-    (pnpm config set registry https://registry.npmjs.org/ && pnpm install --no-frozen-lockfile)
 
-# Build workspace packages first
-RUN pnpm turbo build --filter=@bizbox/shared-* --filter=@bizbox/core-* --filter=@bizbox/plugin-* || true
+# Build workspace packages first  
+RUN npx turbo build --filter=@bizbox/shared-* --filter=@bizbox/core-* --filter=@bizbox/plugin-* || true
 
-# Build the super-admin app  
+# Build the super-admin app
 WORKDIR /app/apps/super-admin
 RUN echo 'module.exports = { ...require("./next.config.js"), output: "standalone" }' > next.config.standalone.js
 RUN mv next.config.standalone.js next.config.js || true
-RUN pnpm build
+RUN npm run build
 
 FROM base AS runner
 WORKDIR /app
