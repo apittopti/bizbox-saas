@@ -205,9 +205,10 @@ services:
   admin:
     build:
       context: .
-      dockerfile: apps/admin/Dockerfile
-      cache_from:
-        - node:20-alpine
+      dockerfile: Dockerfile
+      target: admin-app
+      args:
+        NODE_ENV: production
     restart: unless-stopped
     environment:
       NODE_ENV: production
@@ -233,6 +234,12 @@ services:
           memory: 1G
         reservations:
           memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     labels:
       - coolify.managed=true
       - coolify.name=bizbox-admin
@@ -242,9 +249,10 @@ services:
   builder:
     build:
       context: .
-      dockerfile: apps/builder/Dockerfile
-      cache_from:
-        - node:20-alpine
+      dockerfile: Dockerfile
+      target: builder-app
+      args:
+        NODE_ENV: production
     restart: unless-stopped
     environment:
       NODE_ENV: production
@@ -268,6 +276,12 @@ services:
           memory: 1G
         reservations:
           memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     labels:
       - coolify.managed=true
       - coolify.name=bizbox-builder
@@ -277,9 +291,10 @@ services:
   customer:
     build:
       context: .
-      dockerfile: apps/customer/Dockerfile
-      cache_from:
-        - node:20-alpine
+      dockerfile: Dockerfile
+      target: customer-app
+      args:
+        NODE_ENV: production
     restart: unless-stopped
     environment:
       NODE_ENV: production
@@ -303,6 +318,12 @@ services:
           memory: 1G
         reservations:
           memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     labels:
       - coolify.managed=true
       - coolify.name=bizbox-customer
@@ -312,9 +333,10 @@ services:
   tenant:
     build:
       context: .
-      dockerfile: apps/tenant/Dockerfile
-      cache_from:
-        - node:20-alpine
+      dockerfile: Dockerfile
+      target: tenant-app
+      args:
+        NODE_ENV: production
     restart: unless-stopped
     environment:
       NODE_ENV: production
@@ -338,6 +360,12 @@ services:
           memory: 1G
         reservations:
           memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     labels:
       - coolify.managed=true
       - coolify.name=bizbox-tenant
@@ -347,9 +375,10 @@ services:
   super-admin:
     build:
       context: .
-      dockerfile: apps/super-admin/Dockerfile
-      cache_from:
-        - node:20-alpine
+      dockerfile: Dockerfile
+      target: super-admin-app
+      args:
+        NODE_ENV: production
     restart: unless-stopped
     environment:
       NODE_ENV: production
@@ -374,6 +403,12 @@ services:
           memory: 1G
         reservations:
           memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     labels:
       - coolify.managed=true
       - coolify.name=bizbox-super-admin
