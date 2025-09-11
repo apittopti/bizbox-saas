@@ -19,10 +19,13 @@ COPY packages/core/api/package.json packages/core/api/
 COPY packages packages
 COPY turbo.json ./
 
-# Install dependencies with npm - handle registry issues
-RUN npm config set registry https://registry.npmjs.org/ && \
-    npm config set strict-ssl false && \
-    npm install --legacy-peer-deps --no-optional
+# Install dependencies - try without network restrictions
+RUN npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000 && \
+    npm config set fetch-retry-factor 10 && \
+    npm config set fetch-retries 5 && \
+    npm install --legacy-peer-deps --verbose || \
+    (echo "Network install failed, trying cache clear" && npm cache clean --force && npm install --legacy-peer-deps)
 
 # Build the application
 FROM base AS builder
@@ -36,7 +39,7 @@ COPY tsconfig.json ./
 # Copy landing app source
 COPY apps/landing apps/landing
 
-# Build with npm scripts
+# Build with npm scripts  
 RUN cd apps/landing && npm run build
 
 # Production image
