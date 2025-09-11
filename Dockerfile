@@ -1,184 +1,40 @@
-# BizBox Platform - Multi-Stage Docker Build for pnpm Workspace Monorepo
-# This Dockerfile is designed to handle complex workspace dependencies and network resilience
+# Turborepo Multi-Stage Dockerfile for BizBox Apps
+# This file can be used to build any app in the monorepo by specifying the APP_NAME build arg
 
-# =============================================================================
-# BASE STAGE - Node.js with pnpm and network resilience configurations
-# =============================================================================
-FROM node:18-alpine AS base
+FROM node:20-alpine AS base
+RUN apk add --no-cache libc6-compat python3 make g++
+RUN npm install -g turbo pnpm
 
-# Install essential system dependencies
-RUN apk add --no-cache \
-    libc6-compat \
-    python3 \
-    make \
-    g++ \
-    curl \
-    git
-
-# Enable pnpm with specific version matching package.json
-ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable && corepack prepare pnpm@8.0.0 --activate
-
-# Configure pnpm for network resilience
-RUN pnpm config set registry https://registry.npmjs.org/ && \
-    pnpm config set network-timeout 300000 && \
-    pnpm config set fetch-retries 5 && \
-    pnpm config set fetch-retry-factor 2 && \
-    pnpm config set fetch-retry-mintimeout 10000 && \
-    pnpm config set fetch-retry-maxtimeout 60000 && \
-    pnpm config set auto-install-peers true
-
-# Set working directory
+FROM base AS pruner
 WORKDIR /app
-
-# =============================================================================
-# DEPENDENCIES STAGE - Install all workspace dependencies with network resilience
-# =============================================================================
-FROM base AS dependencies
-
-# Copy workspace configuration files first for optimal layer caching
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY turbo.json ./
-
-# Copy all package.json files to establish workspace structure
-COPY packages/ ./packages/
-COPY apps/ ./apps/
-
-# Remove source files to ensure we only copy package.json files
-# This is crucial for Docker layer caching efficiency
-RUN find packages apps -type f ! -name "package.json" -delete
-RUN find packages apps -type d -empty -delete
-
-# Install dependencies with retry logic for network resilience
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    --mount=type=cache,id=turbo,target=/app/.turbo \
-    for i in 1 2 3 4 5; do \
-        echo "Dependency installation attempt $i..." && \
-        pnpm install --frozen-lockfile --prefer-offline && break || \
-        (echo "Attempt $i failed, retrying in 10 seconds..." && sleep 10); \
-    done
-
-# Verify installation success
-RUN pnpm list --depth=0
-
-# =============================================================================
-# BUILDER STAGE - Build all workspace packages and applications
-# =============================================================================
-FROM dependencies AS builder
-
-# Copy all source code
 COPY . .
+ARG APP_NAME
+RUN turbo prune --scope=@bizbox/app-${APP_NAME} --docker
 
-# Build all packages and applications using Turbo
-RUN --mount=type=cache,id=turbo,target=/app/.turbo \
-    pnpm build
-
-# =============================================================================
-# APPLICATION-SPECIFIC STAGES
-# Each Next.js app gets its own optimized production image
-# =============================================================================
-
-# Admin App Production Image
-FROM base AS admin-app
+FROM base AS installer
 WORKDIR /app
+COPY --from=pruner /app/out/json/ .
+COPY --from=pruner /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
+RUN pnpm install --frozen-lockfile
 
-# Copy built application and necessary files
-COPY --from=builder /app/apps/admin/.next/standalone ./
-COPY --from=builder /app/apps/admin/.next/static ./apps/admin/.next/static
-COPY --from=builder /app/apps/admin/public ./apps/admin/public
+COPY --from=pruner /app/out/full/ .
+ARG APP_NAME
+RUN turbo run build --filter=@bizbox/app-${APP_NAME}...
 
-EXPOSE 3000
-ENV NODE_ENV=production
-ENV PORT=3000
-
-CMD ["node", "apps/admin/server.js"]
-
-# Landing App Production Image  
-FROM base AS landing-app
+FROM base AS runner
 WORKDIR /app
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/apps/landing/.next/standalone ./
-COPY --from=builder /app/apps/landing/.next/static ./apps/landing/.next/static
-COPY --from=builder /app/apps/landing/public ./apps/landing/public
+ARG APP_NAME
+COPY --from=installer --chown=nextjs:nodejs /app/apps/${APP_NAME}/.next/standalone ./
+COPY --from=installer --chown=nextjs:nodejs /app/apps/${APP_NAME}/.next/static ./apps/${APP_NAME}/.next/static
+COPY --from=installer --chown=nextjs:nodejs /app/apps/${APP_NAME}/public ./apps/${APP_NAME}/public
 
+USER nextjs
 EXPOSE 3000
-ENV NODE_ENV=production
-ENV PORT=3000
+ENV PORT 3000
+ENV NODE_ENV production
 
-CMD ["node", "apps/landing/server.js"]
-
-# Builder App Production Image
-FROM base AS builder-app
-WORKDIR /app
-
-COPY --from=builder /app/apps/builder/.next/standalone ./
-COPY --from=builder /app/apps/builder/.next/static ./apps/builder/.next/static
-COPY --from=builder /app/apps/builder/public ./apps/builder/public
-
-EXPOSE 3000
-ENV NODE_ENV=production
-ENV PORT=3000
-
-CMD ["node", "apps/builder/server.js"]
-
-# Customer App Production Image
-FROM base AS customer-app
-WORKDIR /app
-
-COPY --from=builder /app/apps/customer/.next/standalone ./
-COPY --from=builder /app/apps/customer/.next/static ./apps/customer/.next/static
-COPY --from=builder /app/apps/customer/public ./apps/customer/public
-
-EXPOSE 3000
-ENV NODE_ENV=production
-ENV PORT=3000
-
-CMD ["node", "apps/customer/server.js"]
-
-# Tenant App Production Image
-FROM base AS tenant-app
-WORKDIR /app
-
-COPY --from=builder /app/apps/tenant/.next/standalone ./
-COPY --from=builder /app/apps/tenant/.next/static ./apps/tenant/.next/static
-COPY --from=builder /app/apps/tenant/public ./apps/tenant/public
-
-EXPOSE 3000
-ENV NODE_ENV=production
-ENV PORT=3000
-
-CMD ["node", "apps/tenant/server.js"]
-
-# Super Admin App Production Image
-FROM base AS super-admin-app
-WORKDIR /app
-
-COPY --from=builder /app/apps/super-admin/.next/standalone ./
-COPY --from=builder /app/apps/super-admin/.next/static ./apps/super-admin/.next/static
-COPY --from=builder /app/apps/super-admin/public ./apps/super-admin/public
-
-EXPOSE 3000
-ENV NODE_ENV=production
-ENV PORT=3000
-
-CMD ["node", "apps/super-admin/server.js"]
-
-# =============================================================================
-# DEVELOPMENT STAGE - Full monorepo for development
-# =============================================================================
-FROM dependencies AS development
-
-# Copy all source code
-COPY . .
-
-# Install development dependencies
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    pnpm install
-
-EXPOSE 3000 3001 3002 3003 3004 3005
-
-# Default to development mode
-ENV NODE_ENV=development
-
-CMD ["pnpm", "dev"]
+ARG APP_NAME
+CMD node apps/${APP_NAME}/server.js
