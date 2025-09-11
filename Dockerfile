@@ -12,25 +12,11 @@ RUN cd packages/shared/utils && npm install
 RUN cd packages/shared/hooks && npm install
 RUN cd packages/shared/ui && npm install
 
-# Build shared packages
+# Build shared packages that exist
 RUN cd packages/shared/types && npm run build
 RUN cd packages/shared/utils && npm run build
 RUN cd packages/shared/hooks && npm run build
 RUN cd packages/shared/ui && npm run build
-
-# Install dependencies for core packages
-RUN cd packages/core/api && npm install
-RUN cd packages/core/auth && npm install
-
-# Build core packages
-RUN cd packages/core/api && npm run build
-RUN cd packages/core/auth && npm run build
-
-# Install dependencies for plugin packages that the app needs
-RUN cd packages/plugins/booking && npm install && npm run build
-RUN cd packages/plugins/ecommerce && npm install && npm run build
-RUN cd packages/plugins/website-builder && npm install && npm run build
-RUN cd packages/plugins/payments && npm install && npm run build
 
 # Finally, install and build the specific app
 RUN cd apps/${APP_NAME} && npm install
