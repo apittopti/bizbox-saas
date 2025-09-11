@@ -52,7 +52,8 @@ services:
   landing:
     build:
       context: .
-      dockerfile: apps/landing/Dockerfile
+      dockerfile: apps/landing/Dockerfile.prod
+      network: host
     restart: unless-stopped
     depends_on:
       postgres:
@@ -82,6 +83,7 @@ services:
     build:
       context: .
       dockerfile: apps/admin/Dockerfile
+      network: host
     restart: unless-stopped
     depends_on:
       postgres:
@@ -109,6 +111,7 @@ services:
     build:
       context: .
       dockerfile: apps/builder/Dockerfile
+      network: host
     restart: unless-stopped
     depends_on:
       postgres:
@@ -135,6 +138,7 @@ services:
     build:
       context: .
       dockerfile: apps/customer/Dockerfile
+      network: host
     restart: unless-stopped
     depends_on:
       postgres:
@@ -161,6 +165,7 @@ services:
     build:
       context: .
       dockerfile: apps/tenant/Dockerfile
+      network: host
     restart: unless-stopped
     depends_on:
       postgres:
@@ -186,6 +191,7 @@ services:
     build:
       context: .
       dockerfile: apps/super-admin/Dockerfile
+      network: host
     restart: unless-stopped
     depends_on:
       postgres:
