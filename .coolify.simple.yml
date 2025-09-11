@@ -52,7 +52,7 @@ services:
   landing:
     build:
       context: .
-      dockerfile: apps/landing/Dockerfile.prod
+      dockerfile: apps/landing/Dockerfile
       network: host
     restart: unless-stopped
     depends_on:
