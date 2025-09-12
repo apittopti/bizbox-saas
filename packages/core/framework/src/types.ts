@@ -1,5 +1,7 @@
 import type { Tenant, User } from "@bizbox/shared-types";
 
+export type { Tenant, User };
+
 export interface Plugin {
   id: string;
   name: string;
@@ -72,7 +74,7 @@ export interface EventPayload {
 }
 
 export interface HookRegistry {
-  [hookName: string]: PluginHook[];
+  [hookName: string]: any[];
 }
 
 // Plugin validation result
