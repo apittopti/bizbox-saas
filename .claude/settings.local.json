@@ -38,7 +38,9 @@
       "Bash(for app in admin builder customer landing super-admin tenant)",
       "Bash(do sed -i 's/pnpm install --frozen-lockfile/pnpm install/g' apps/$app/Dockerfile)",
       "Bash(for app in builder customer landing tenant)",
-      "Bash(npm view:*)"
+      "Bash(npm view:*)",
+      "Bash(for app in builder customer landing tenant super-admin)",
+      "Bash(do mkdir -p apps/$app/src/app)"
     ],
     "deny": [],
     "ask": []

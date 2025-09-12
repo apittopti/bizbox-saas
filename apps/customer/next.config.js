@@ -151,19 +151,6 @@ const nextConfig = {
   
   // Webpack configuration for performance
   webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
-    // Bundle analyzer in development
-    if (!dev && !isServer) {
-      const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
-      if (process.env.ANALYZE === 'true') {
-        config.plugins.push(
-          new BundleAnalyzerPlugin({
-            analyzerMode: 'static',
-            reportFilename: './bundle-analyzer-report.html',
-            openAnalyzer: false,
-          })
-        );
-      }
-    }
     
     // Optimize production builds
     if (!dev) {
