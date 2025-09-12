@@ -20,6 +20,7 @@
   "dependencies": {
     "@bizbox/shared-types": "file:../types",
     "clsx": "^2.0.0",
+    "tailwind-merge": "^2.0.0",
     "zod": "^3.22.0"
   },
   "devDependencies": {
