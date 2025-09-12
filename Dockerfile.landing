@@ -20,7 +20,11 @@ COPY apps ./apps
 # Install workspace deps
 RUN pnpm install
 
-# Build only this app
+# Build shared packages first
+RUN pnpm --filter "./packages/shared/*" build
+RUN pnpm --filter "./packages/core/*" build
+RUN pnpm --filter "./packages/plugins/*" build
+# Then build the app
 RUN pnpm --filter ./apps/landing build
 
 ENV NODE_ENV=production \
