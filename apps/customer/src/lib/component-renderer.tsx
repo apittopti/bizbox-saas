@@ -63,13 +63,16 @@ export class ComponentRenderer {
       pageData.sections.map((section) => this.renderSection(section))
     );
 
+    const themeStyles = this.generateThemeCSS(pageData.theme);
+    const pageStyle = themeStyles ? { cssText: themeStyles } : {};
+
     return (
-      <div className="page-container">
-        <style jsx>{`
-          .page-container {
-            ${this.generateThemeCSS(pageData.theme)}
-          }
-        `}</style>
+      <div className="page-container" style={pageStyle}>
+        {themeStyles && (
+          <style dangerouslySetInnerHTML={{
+            __html: `.page-container { ${themeStyles} }`
+          }} />
+        )}
         {sections}
       </div>
     );
@@ -196,7 +199,7 @@ export class ComponentRenderer {
   /**
    * Component renderers
    */
-  private renderHeroComponent(props: any, styling: any): React.ReactElement {
+  private renderHeroComponent(props: any, styling: any, options: any = {}): React.ReactElement {
     return (
       <div key={props.id} className={`hero-component ${styling.className || ''}`}>
         <div className="hero-content">
@@ -216,7 +219,7 @@ export class ComponentRenderer {
     );
   }
 
-  private renderServicesComponent(props: any, styling: any): React.ReactElement {
+  private renderServicesComponent(props: any, styling: any, options: any = {}): React.ReactElement {
     const services = props.services || [];
     
     return (
@@ -244,7 +247,7 @@ export class ComponentRenderer {
     );
   }
 
-  private renderStaffComponent(props: any, styling: any): React.ReactElement {
+  private renderStaffComponent(props: any, styling: any, options: any = {}): React.ReactElement {
     const staff = props.staff || [];
     
     return (
@@ -276,7 +279,7 @@ export class ComponentRenderer {
     );
   }
 
-  private renderProductsComponent(props: any, styling: any): React.ReactElement {
+  private renderProductsComponent(props: any, styling: any, options: any = {}): React.ReactElement {
     const products = props.products || [];
     
     return (
@@ -304,7 +307,7 @@ export class ComponentRenderer {
     );
   }
 
-  private renderBookingFormComponent(props: any, styling: any): React.ReactElement {
+  private renderBookingFormComponent(props: any, styling: any, options: any = {}): React.ReactElement {
     return (
       <div key={props.id} className={`booking-form-component ${styling.className || ''}`}>
         <h2>{props.title || 'Book an Appointment'}</h2>
@@ -315,7 +318,7 @@ export class ComponentRenderer {
     );
   }
 
-  private renderContactComponent(props: any, styling: any): React.ReactElement {
+  private renderContactComponent(props: any, styling: any, options: any = {}): React.ReactElement {
     return (
       <div key={props.id} className={`contact-component ${styling.className || ''}`}>
         <h2>{props.title || 'Contact Us'}</h2>
@@ -328,7 +331,7 @@ export class ComponentRenderer {
     );
   }
 
-  private renderFooterComponent(props: any, styling: any): React.ReactElement {
+  private renderFooterComponent(props: any, styling: any, options: any = {}): React.ReactElement {
     return (
       <footer key={props.id} className={`footer-component ${styling.className || ''}`}>
         <div className="footer-content">
@@ -353,6 +356,161 @@ export class ComponentRenderer {
           <p>&copy; {new Date().getFullYear()} {this.tenant.name}. All rights reserved.</p>
         </div>
       </footer>
+    );
+  }
+
+  private renderProductBrowserComponent(props: any, styling: any, options: any = {}): React.ReactElement {
+    return (
+      <div key={props.id} className={`product-browser-component ${styling.className || ''}`}>
+        <h2>{props.title || 'Browse Products'}</h2>
+        <div id="product-browser-container" data-tenant-id={this.tenant.id}>
+          {/* Product browser will be hydrated client-side */}
+        </div>
+      </div>
+    );
+  }
+
+  private renderContactFormComponent(props: any, styling: any, options: any = {}): React.ReactElement {
+    return (
+      <div key={props.id} className={`contact-form-component ${styling.className || ''}`}>
+        <h2>{props.title || 'Get in Touch'}</h2>
+        <div id="contact-form-container">
+          {/* Contact form will be hydrated client-side */}
+        </div>
+      </div>
+    );
+  }
+
+  private renderGalleryComponent(props: any, styling: any, options: any): React.ReactElement {
+    const images = props.images || [];
+    return (
+      <div key={props.id} className={`gallery-component ${styling.className || ''}`}>
+        <h2>{props.title || 'Gallery'}</h2>
+        <div className="gallery-grid">
+          {images.map((image: any, index: number) => (
+            <div key={index} className="gallery-item">
+              <img src={image.url} alt={image.alt || ''} loading={options.isVisible ? 'eager' : 'lazy'} />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  private renderTestimonialsComponent(props: any, styling: any, options: any): React.ReactElement {
+    const testimonials = props.testimonials || [];
+    return (
+      <div key={props.id} className={`testimonials-component ${styling.className || ''}`}>
+        <h2>{props.title || 'What Our Clients Say'}</h2>
+        <div className="testimonials-grid">
+          {testimonials.map((testimonial: any, index: number) => (
+            <div key={index} className="testimonial-card">
+              <p className="testimonial-text">"{testimonial.text}"</p>
+              <div className="testimonial-author">
+                <strong>{testimonial.author}</strong>
+                {testimonial.role && <span> - {testimonial.role}</span>}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  private renderCallToActionComponent(props: any, styling: any, options: any = {}): React.ReactElement {
+    return (
+      <div key={props.id} className={`cta-component ${styling.className || ''}`}>
+        <h2>{props.title || 'Ready to Get Started?'}</h2>
+        <p>{props.description || ''}</p>
+        {props.buttonText && (
+          <button className="cta-button">{props.buttonText}</button>
+        )}
+      </div>
+    );
+  }
+
+  private renderSocialFeedComponent(props: any, styling: any, options: any): React.ReactElement {
+    return (
+      <div key={props.id} className={`social-feed-component ${styling.className || ''}`}>
+        <h2>{props.title || 'Follow Us'}</h2>
+        <div id="social-feed-container">
+          {/* Social feed will be hydrated client-side */}
+        </div>
+      </div>
+    );
+  }
+
+  private renderMapComponent(props: any, styling: any, options: any): React.ReactElement {
+    return (
+      <div key={props.id} className={`map-component ${styling.className || ''}`}>
+        <h2>{props.title || 'Find Us'}</h2>
+        <div id="map-container" data-coordinates={JSON.stringify(props.coordinates)}>
+          {/* Map will be hydrated client-side */}
+        </div>
+      </div>
+    );
+  }
+
+  private renderBlogComponent(props: any, styling: any, options: any): React.ReactElement {
+    const posts = props.posts || [];
+    return (
+      <div key={props.id} className={`blog-component ${styling.className || ''}`}>
+        <h2>{props.title || 'Latest News'}</h2>
+        <div className="blog-grid">
+          {posts.map((post: any) => (
+            <article key={post.id} className="blog-card">
+              {post.image && <img src={post.image} alt={post.title} />}
+              <h3>{post.title}</h3>
+              <p>{post.excerpt}</p>
+              <a href={`/blog/${post.slug}`}>Read More</a>
+            </article>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  private renderFAQComponent(props: any, styling: any, options: any): React.ReactElement {
+    const faqs = props.faqs || [];
+    return (
+      <div key={props.id} className={`faq-component ${styling.className || ''}`}>
+        <h2>{props.title || 'Frequently Asked Questions'}</h2>
+        <div className="faq-list">
+          {faqs.map((faq: any, index: number) => (
+            <details key={index} className="faq-item">
+              <summary>{faq.question}</summary>
+              <p>{faq.answer}</p>
+            </details>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  private renderNewsletterComponent(props: any, styling: any, options: any = {}): React.ReactElement {
+    return (
+      <div key={props.id} className={`newsletter-component ${styling.className || ''}`}>
+        <h2>{props.title || 'Subscribe to Our Newsletter'}</h2>
+        <p>{props.description || 'Stay updated with our latest news and offers'}</p>
+        <div id="newsletter-form-container">
+          {/* Newsletter form will be hydrated client-side */}
+        </div>
+      </div>
+    );
+  }
+
+  private renderCustomComponent(type: string, props: any, styling: any, options: any): React.ReactElement {
+    return (
+      <div key={props.id} className={`custom-component ${type}-component ${styling.className || ''}`}>
+        {options.isPreview && (
+          <div className="component-preview-label">
+            Custom Component: {type}
+          </div>
+        )}
+        <div className="component-content">
+          {/* Custom component content will be rendered based on type */}
+        </div>
+      </div>
     );
   }
 
