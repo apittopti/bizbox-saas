@@ -1,0 +1,33 @@
+# syntax=docker/dockerfile:1
+FROM node:20-alpine
+
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+
+# Enable pnpm
+RUN corepack enable && corepack prepare pnpm@9 --activate
+
+# Copy workspace manifests first for better caching
+COPY pnpm-workspace.yaml ./
+COPY package.json ./
+# Optional (if present)
+COPY turbo.json ./
+
+# Copy source
+COPY packages ./packages
+COPY apps ./apps
+
+# Install workspace deps
+RUN pnpm install
+
+# Build only this app
+RUN pnpm --filter ./apps/landing build
+
+ENV NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1 \
+    PORT=3001
+
+EXPOSE 3001
+
+# Bind to 0.0.0.0 to be reachable from outside the container
+CMD ["sh","-lc","pnpm --filter ./apps/landing start -- -H 0.0.0.0 -p $PORT"]

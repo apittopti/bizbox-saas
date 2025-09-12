@@ -19,83 +19,107 @@ services:
       - redis_data:/data
     ports:
       - "6379:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
     restart: unless-stopped
 
   landing:
     build:
-      context: ./apps/landing
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile.landing
     ports:
-      - "3001:3000"
+      - "3001:3001"
     environment:
       - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/bizbox_db
+      - REDIS_URL=redis://redis:6379
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-your-nextauth-secret-key}
-      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://194.164.89.92:3001}
+      - NEXTAUTH_URL=http://194.164.89.92:3001
+    depends_on:
+      - postgres
+      - redis
     restart: unless-stopped
 
   admin:
     build:
-      context: ./apps/admin
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile.admin
     ports:
-      - "3002:3000"
+      - "3002:3002"
     environment:
       - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/bizbox_db
+      - REDIS_URL=redis://redis:6379
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-your-nextauth-secret-key}
-      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://194.164.89.92:3002}
+      - NEXTAUTH_URL=http://194.164.89.92:3002
+    depends_on:
+      - postgres
+      - redis
     restart: unless-stopped
 
   builder:
     build:
-      context: ./apps/builder
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile.builder
     ports:
-      - "3003:3000"
+      - "3003:3003"
     environment:
       - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/bizbox_db
+      - REDIS_URL=redis://redis:6379
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-your-nextauth-secret-key}
-      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://194.164.89.92:3003}
+      - NEXTAUTH_URL=http://194.164.89.92:3003
+    depends_on:
+      - postgres
+      - redis
     restart: unless-stopped
 
   customer:
     build:
-      context: ./apps/customer
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile.customer
     ports:
-      - "3004:3000"
+      - "3004:3004"
     environment:
       - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/bizbox_db
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - postgres
+      - redis
     restart: unless-stopped
 
   tenant:
     build:
-      context: ./apps/tenant
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile.tenant
     ports:
-      - "3005:3000"
+      - "3005:3005"
     environment:
       - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/bizbox_db
+      - REDIS_URL=redis://redis:6379
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-your-nextauth-secret-key}
-      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://194.164.89.92:3005}
+      - NEXTAUTH_URL=http://194.164.89.92:3005
+    depends_on:
+      - postgres
+      - redis
     restart: unless-stopped
 
   super-admin:
     build:
-      context: ./apps/super-admin
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile.super-admin
     ports:
-      - "3006:3000"
+      - "3006:3006"
     environment:
       - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/bizbox_db
+      - REDIS_URL=redis://redis:6379
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-your-nextauth-secret-key}
-      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://194.164.89.92:3006}
+      - NEXTAUTH_URL=http://194.164.89.92:3006
+    depends_on:
+      - postgres
+      - redis
     restart: unless-stopped
-
 
 volumes:
   postgres_data:
