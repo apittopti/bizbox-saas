@@ -1,6 +1,0 @@
-packages:
-  - 'packages/core/*'
-  - 'packages/plugins/*'
-  - 'packages/shared/*'
-  - 'packages/tools/*'
-  - 'apps/*'
