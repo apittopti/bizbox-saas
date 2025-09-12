@@ -3,14 +3,6 @@
   "version": "1.0.0",
   "description": "BizBox Multi-Tenant SaaS Platform",
   "private": true,
-  "packageManager": "pnpm@8.15.0",
-  "workspaces": [
-    "packages/core/*",
-    "packages/plugins/*",
-    "packages/shared/*",
-    "packages/tools/*",
-    "apps/*"
-  ],
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
