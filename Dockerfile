@@ -1,17 +1,16 @@
 FROM node:18-alpine AS base
-RUN apk add --no-cache libc6-compat
-RUN npm install -g pnpm
+RUN apk add --no-cache libc6-compat python3 make g++
 WORKDIR /app
 
 FROM base AS installer
 ARG APP_NAME
 COPY . .
 
-# Install all dependencies using pnpm
-RUN pnpm install
+# Install dependencies for the specific app
+RUN cd apps/${APP_NAME} && npm install
 
-# Build the specific app using pnpm
-RUN pnpm --filter @bizbox/app-${APP_NAME} build
+# Build the specific app
+RUN cd apps/${APP_NAME} && npm run build
 
 FROM base AS runner
 WORKDIR /app
