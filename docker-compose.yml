@@ -1,0 +1,154 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:14-alpine
+    container_name: bizbox-postgres
+    environment:
+      POSTGRES_DB: bizbox_db
+      POSTGRES_USER: bizbox_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-securepassword123}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - bizbox-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: bizbox-redis
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - bizbox-network
+    restart: unless-stopped
+
+  landing:
+    build:
+      context: .
+      dockerfile: apps/landing/Dockerfile.prod
+    container_name: bizbox-landing
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://bizbox_user:securepassword123@postgres:5432/bizbox_db
+      - REDIS_URL=redis://redis:6379
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-your-nextauth-secret-key}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://194.164.89.92:3001}
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - bizbox-network
+    restart: unless-stopped
+
+  admin:
+    build:
+      context: .
+      dockerfile: apps/admin/Dockerfile.prod
+    container_name: bizbox-admin
+    ports:
+      - "3002:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://bizbox_user:securepassword123@postgres:5432/bizbox_db
+      - REDIS_URL=redis://redis:6379
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-your-nextauth-secret-key}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://194.164.89.92:3002}
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - bizbox-network
+    restart: unless-stopped
+
+  builder:
+    build:
+      context: .
+      dockerfile: apps/builder/Dockerfile.prod
+    container_name: bizbox-builder
+    ports:
+      - "3003:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://bizbox_user:securepassword123@postgres:5432/bizbox_db
+      - REDIS_URL=redis://redis:6379
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-your-nextauth-secret-key}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://194.164.89.92:3003}
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - bizbox-network
+    restart: unless-stopped
+
+  customer:
+    build:
+      context: .
+      dockerfile: apps/customer/Dockerfile.prod
+    container_name: bizbox-customer
+    ports:
+      - "3004:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://bizbox_user:securepassword123@postgres:5432/bizbox_db
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - bizbox-network
+    restart: unless-stopped
+
+  tenant:
+    build:
+      context: .
+      dockerfile: apps/tenant/Dockerfile.prod
+    container_name: bizbox-tenant
+    ports:
+      - "3005:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://bizbox_user:securepassword123@postgres:5432/bizbox_db
+      - REDIS_URL=redis://redis:6379
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-your-nextauth-secret-key}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://194.164.89.92:3005}
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - bizbox-network
+    restart: unless-stopped
+
+  super-admin:
+    build:
+      context: .
+      dockerfile: apps/super-admin/Dockerfile.prod
+    container_name: bizbox-super-admin
+    ports:
+      - "3006:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://bizbox_user:securepassword123@postgres:5432/bizbox_db
+      - REDIS_URL=redis://redis:6379
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-your-nextauth-secret-key}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://194.164.89.92:3006}
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - bizbox-network
+    restart: unless-stopped
+
+networks:
+  bizbox-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:

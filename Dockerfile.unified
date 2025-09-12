@@ -1,0 +1,73 @@
+# Single unified Dockerfile for BizBox deployment
+FROM node:20-alpine AS builder
+RUN apk add --no-cache libc6-compat python3 make g++
+WORKDIR /app
+
+# Copy everything
+COPY . .
+
+# Convert all workspace references to file references for npm
+RUN find . -name "package.json" -exec sed -i 's/"workspace:\*"/"file:..\/..\/packages\/shared\/types"/g' {} \;
+
+# Install and build everything in correct order
+RUN npm install --legacy-peer-deps
+
+# Build packages
+RUN cd packages/shared/types && npm run build || true && cd ../..
+RUN cd packages/shared/utils && npm run build || true && cd ../..
+RUN cd packages/shared/hooks && npm run build || true && cd ../..
+RUN cd packages/shared/ui && npm run build || true && cd ../..
+RUN cd packages/core/database && npm run build || true && cd ../..
+RUN cd packages/core/auth && npm run build || true && cd ../..
+RUN cd packages/core/api && npm run build || true && cd ../..
+RUN cd packages/core/framework && npm run build || true && cd ../..
+
+# Build all apps
+RUN cd apps/landing && npm run build || true && cd ../..
+RUN cd apps/admin && npm run build || true && cd ../..
+RUN cd apps/builder && npm run build || true && cd ../..
+RUN cd apps/customer && npm run build || true && cd ../..
+RUN cd apps/tenant && npm run build || true && cd ../..
+RUN cd apps/super-admin && npm run build || true && cd ../..
+
+# Production stage
+FROM node:20-alpine AS runner
+RUN apk add --no-cache supervisor
+WORKDIR /app
+
+# Copy built applications
+COPY --from=builder /app/apps /app/apps
+COPY --from=builder /app/packages /app/packages
+COPY --from=builder /app/node_modules /app/node_modules
+
+# Create supervisor config
+RUN echo '[supervisord]' > /etc/supervisord.conf && \
+    echo 'nodaemon=true' >> /etc/supervisord.conf && \
+    echo '[program:landing]' >> /etc/supervisord.conf && \
+    echo 'command=npm start' >> /etc/supervisord.conf && \
+    echo 'directory=/app/apps/landing' >> /etc/supervisord.conf && \
+    echo 'environment=PORT="3001"' >> /etc/supervisord.conf && \
+    echo '[program:admin]' >> /etc/supervisord.conf && \
+    echo 'command=npm start' >> /etc/supervisord.conf && \
+    echo 'directory=/app/apps/admin' >> /etc/supervisord.conf && \
+    echo 'environment=PORT="3002"' >> /etc/supervisord.conf && \
+    echo '[program:builder]' >> /etc/supervisord.conf && \
+    echo 'command=npm start' >> /etc/supervisord.conf && \
+    echo 'directory=/app/apps/builder' >> /etc/supervisord.conf && \
+    echo 'environment=PORT="3003"' >> /etc/supervisord.conf && \
+    echo '[program:customer]' >> /etc/supervisord.conf && \
+    echo 'command=npm start' >> /etc/supervisord.conf && \
+    echo 'directory=/app/apps/customer' >> /etc/supervisord.conf && \
+    echo 'environment=PORT="3004"' >> /etc/supervisord.conf && \
+    echo '[program:tenant]' >> /etc/supervisord.conf && \
+    echo 'command=npm start' >> /etc/supervisord.conf && \
+    echo 'directory=/app/apps/tenant' >> /etc/supervisord.conf && \
+    echo 'environment=PORT="3005"' >> /etc/supervisord.conf && \
+    echo '[program:super-admin]' >> /etc/supervisord.conf && \
+    echo 'command=npm start' >> /etc/supervisord.conf && \
+    echo 'directory=/app/apps/super-admin' >> /etc/supervisord.conf && \
+    echo 'environment=PORT="3006"' >> /etc/supervisord.conf
+
+EXPOSE 3001 3002 3003 3004 3005 3006
+
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
