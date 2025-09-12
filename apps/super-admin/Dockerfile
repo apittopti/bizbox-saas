@@ -1,37 +1,59 @@
-FROM node:20-alpine AS base
-RUN apk add --no-cache libc6-compat
+FROM node:20-alpine
 WORKDIR /app
 
-# Create a simple Next.js app
-RUN npx create-next-app@latest superadmin --typescript --no-eslint --tailwind --app --no-src-dir --import-alias "@/*" --use-npm --no-git --no-install
-
-WORKDIR /app/superadmin
+# Create package.json
+RUN echo '{ \
+  "name": "super-admin", \
+  "version": "1.0.0", \
+  "scripts": { \
+    "dev": "next dev", \
+    "build": "next build", \
+    "start": "next start" \
+  }, \
+  "dependencies": { \
+    "next": "14.0.0", \
+    "react": "18.2.0", \
+    "react-dom": "18.2.0" \
+  } \
+}' > package.json
 
 # Install dependencies
-RUN npm install
+RUN npm config set registry https://registry.npmjs.org/ && \
+    npm install --verbose
 
-# Create a simple super admin page
-RUN echo 'export default function Home() { return ( <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-red-50"> <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm"> <h1 className="text-4xl font-bold text-center mb-8">Super Admin Control</h1> <p className="text-center text-xl mb-8">Platform Administration</p> <div className="bg-white p-8 rounded-lg shadow-lg"> <h2 className="text-2xl font-semibold mb-4">System Controls</h2> <ul className="space-y-2"> <li>• Infrastructure Management</li> <li>• Platform Configuration</li> <li>• Multi-Tenant Administration</li> <li>• System Monitoring</li> </ul> </div> </div> </main> ); }' > app/page.tsx
+# Create next.config.js
+RUN echo 'module.exports = { output: "standalone", reactStrictMode: true }' > next.config.js
 
-# Configure for standalone output
-RUN echo 'module.exports = { output: "standalone" }' > next.config.js
+# Create app directory
+RUN mkdir -p app
 
-# Build the app
+# Create layout
+RUN echo 'export default function RootLayout({ children }) { \
+  return ( \
+    <html> \
+      <head /> \
+      <body>{children}</body> \
+    </html> \
+  ) \
+}' > app/layout.js
+
+# Create super admin page
+RUN echo 'export default function Page() { \
+  return ( \
+    <div style={{ padding: "50px", fontFamily: "Arial", backgroundColor: "#ffebee", minHeight: "100vh" }}> \
+      <h1>Super Admin Control</h1> \
+      <p>Platform Administration</p> \
+      <ul> \
+        <li>Infrastructure Management</li> \
+        <li>Platform Configuration</li> \
+        <li>System Monitoring</li> \
+      </ul> \
+    </div> \
+  ) \
+}' > app/page.js
+
+# Build the application
 RUN npm run build
 
-FROM node:20-alpine AS runner
-WORKDIR /app
-
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
-COPY --from=base --chown=nextjs:nodejs /app/superadmin/.next/standalone ./
-COPY --from=base --chown=nextjs:nodejs /app/superadmin/.next/static ./.next/static
-COPY --from=base --chown=nextjs:nodejs /app/superadmin/public ./public
-
-USER nextjs
 EXPOSE 3000
-ENV PORT 3000
-ENV HOSTNAME "0.0.0.0"
-
-CMD ["node", "server.js"]
+CMD ["npm", "start"]

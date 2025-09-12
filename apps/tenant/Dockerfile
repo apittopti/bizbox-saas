@@ -1,37 +1,59 @@
-FROM node:20-alpine AS base
-RUN apk add --no-cache libc6-compat
+FROM node:20-alpine
 WORKDIR /app
 
-# Create a simple Next.js app
-RUN npx create-next-app@latest tenant --typescript --no-eslint --tailwind --app --no-src-dir --import-alias "@/*" --use-npm --no-git --no-install
-
-WORKDIR /app/tenant
+# Create package.json
+RUN echo '{ \
+  "name": "tenant", \
+  "version": "1.0.0", \
+  "scripts": { \
+    "dev": "next dev", \
+    "build": "next build", \
+    "start": "next start" \
+  }, \
+  "dependencies": { \
+    "next": "14.0.0", \
+    "react": "18.2.0", \
+    "react-dom": "18.2.0" \
+  } \
+}' > package.json
 
 # Install dependencies
-RUN npm install
+RUN npm config set registry https://registry.npmjs.org/ && \
+    npm install --verbose
 
-# Create a simple tenant page
-RUN echo 'export default function Home() { return ( <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-purple-50"> <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm"> <h1 className="text-4xl font-bold text-center mb-8">Business Dashboard</h1> <p className="text-center text-xl mb-8">Manage Your Business</p> <div className="bg-white p-8 rounded-lg shadow-lg"> <h2 className="text-2xl font-semibold mb-4">Management Tools</h2> <ul className="space-y-2"> <li>• Booking Management</li> <li>• Staff Scheduling</li> <li>• Customer Database</li> <li>• Analytics & Reports</li> </ul> </div> </div> </main> ); }' > app/page.tsx
+# Create next.config.js
+RUN echo 'module.exports = { output: "standalone", reactStrictMode: true }' > next.config.js
 
-# Configure for standalone output
-RUN echo 'module.exports = { output: "standalone" }' > next.config.js
+# Create app directory
+RUN mkdir -p app
 
-# Build the app
+# Create layout
+RUN echo 'export default function RootLayout({ children }) { \
+  return ( \
+    <html> \
+      <head /> \
+      <body>{children}</body> \
+    </html> \
+  ) \
+}' > app/layout.js
+
+# Create tenant page
+RUN echo 'export default function Page() { \
+  return ( \
+    <div style={{ padding: "50px", fontFamily: "Arial", backgroundColor: "#f3e5f5", minHeight: "100vh" }}> \
+      <h1>Business Dashboard</h1> \
+      <p>Manage Your Business</p> \
+      <ul> \
+        <li>Booking Management</li> \
+        <li>Staff Scheduling</li> \
+        <li>Analytics & Reports</li> \
+      </ul> \
+    </div> \
+  ) \
+}' > app/page.js
+
+# Build the application
 RUN npm run build
 
-FROM node:20-alpine AS runner
-WORKDIR /app
-
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
-COPY --from=base --chown=nextjs:nodejs /app/tenant/.next/standalone ./
-COPY --from=base --chown=nextjs:nodejs /app/tenant/.next/static ./.next/static
-COPY --from=base --chown=nextjs:nodejs /app/tenant/public ./public
-
-USER nextjs
 EXPOSE 3000
-ENV PORT 3000
-ENV HOSTNAME "0.0.0.0"
-
-CMD ["node", "server.js"]
+CMD ["npm", "start"]
