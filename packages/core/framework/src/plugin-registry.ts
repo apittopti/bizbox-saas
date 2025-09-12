@@ -45,7 +45,7 @@ export class PluginRegistry {
     };
 
     this.plugins.set(plugin.id, entry);
-    this.updateDependencyGraph(plugin.id, manifest.dependencies);
+    this.updateDependencyGraph(plugin.id, manifest.dependencies || {});
 
     console.log(`Plugin ${plugin.id} registered successfully`);
   }
@@ -176,6 +176,8 @@ export class PluginRegistry {
 
   private checkCompatibility(manifest: PluginManifest): void {
     // Check if all dependencies are available
+    if (!manifest.dependencies) return;
+    
     for (const [depId, depVersion] of Object.entries(manifest.dependencies)) {
       const depEntry = this.plugins.get(depId);
       if (!depEntry) {
