@@ -1,30 +1,16 @@
 FROM node:18-alpine AS base
-
-FROM base AS builder
-RUN apk update
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat python3 make g++
 WORKDIR /app
-RUN npm install -g pnpm@8.15.0 turbo@^1
+
+FROM base AS installer
+ARG APP_NAME
 COPY . .
 
-# Generate a partial monorepo with a pruned lockfile for a target workspace
-ARG APP_NAME
-RUN turbo prune @bizbox/app-${APP_NAME} --docker
+# Install dependencies for the specific app
+RUN cd apps/${APP_NAME} && npm install
 
-# Add lockfile and package.json's of isolated subworkspace
-FROM base AS installer
-RUN apk update
-RUN apk add --no-cache libc6-compat
-WORKDIR /app
-RUN npm install -g pnpm@8.15.0
-
-# First install the dependencies (as they change less often)
-COPY --from=builder /app/out/json/ .
-RUN pnpm install --frozen-lockfile
-
-# Build the project
-COPY --from=builder /app/out/full/ .
-RUN pnpm turbo run build --filter=@bizbox/app-${APP_NAME}
+# Build the specific app
+RUN cd apps/${APP_NAME} && npm run build
 
 FROM base AS runner
 WORKDIR /app
