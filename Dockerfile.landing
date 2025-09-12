@@ -20,12 +20,8 @@ COPY apps ./apps
 # Install workspace deps
 RUN pnpm install
 
-# Build shared packages first
-RUN pnpm --filter "./packages/shared/*" build
-RUN pnpm --filter "./packages/core/*" build
-RUN pnpm --filter "./packages/plugins/*" build
-# Then build the app
-RUN pnpm --filter ./apps/landing build
+# Build all dependencies and the app
+RUN pnpm build --filter=@bizbox/app-landing...
 
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \

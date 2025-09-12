@@ -12,12 +12,8 @@ COPY packages ./packages
 COPY apps ./apps
 
 RUN pnpm install
-# Build shared packages first
-RUN pnpm --filter "./packages/shared/*" build
-RUN pnpm --filter "./packages/core/*" build
-RUN pnpm --filter "./packages/plugins/*" build
-# Then build the app
-RUN pnpm --filter ./apps/builder build
+# Build all dependencies and the app
+RUN pnpm build --filter=@bizbox/app-builder...
 
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
