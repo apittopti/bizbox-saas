@@ -396,4 +396,4 @@ export function validateTheme(theme: Partial<Theme>): string[] {
   return errors
 }
 
-export { Theme, ThemeColors, ThemeTypography, ThemeSpacing, ThemeBorderRadius }
+// Types are already exported above

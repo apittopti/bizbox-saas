@@ -70,7 +70,7 @@ export const userSchema = z.object({
   email: emailSchema,
   passwordHash: z.string().optional().nullable(),
   role: userRoleSchema.default('customer'),
-  profile: userProfileSchema.default({}),
+  profile: userProfileSchema,
   permissions: userPermissionsSchema.default([]),
   createdAt: timestampSchema,
   updatedAt: timestampSchema,
@@ -81,7 +81,7 @@ export const createUserSchema = z.object({
   email: emailSchema,
   password: z.string().min(8).optional(),
   role: userRoleSchema.default('customer'),
-  profile: userProfileSchema.optional().default({}),
+  profile: userProfileSchema.partial().optional(),
   permissions: userPermissionsSchema.optional().default([]),
 });
 

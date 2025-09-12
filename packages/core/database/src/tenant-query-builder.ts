@@ -22,7 +22,7 @@ export class TenantQueryBuilder {
     const tenantId = getCurrentTenantId();
     const tenantFilter = eq(table[tenantColumn as keyof T] as PgColumn, tenantId);
     
-    return where ? and(tenantFilter, where) : tenantFilter;
+    return where ? and(tenantFilter, where)! : tenantFilter;
   }
 
   /**

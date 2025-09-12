@@ -65,7 +65,7 @@ export class UserModel extends BaseModel<User, CreateUser, UpdateUser> {
   /**
    * Find users by role within tenant
    */
-  async findByRole(role: string): Promise<User[]> {
+  async findByRole(role: 'super_admin' | 'tenant_admin' | 'staff' | 'customer'): Promise<User[]> {
     try {
       return await this.queryBuilder.select(this.table, {
         where: eq(this.table.role, role)
@@ -79,7 +79,7 @@ export class UserModel extends BaseModel<User, CreateUser, UpdateUser> {
   /**
    * Update user permissions
    */
-  async updatePermissions(userId: string, permissions: string[]): Promise<User | null> {
+  async updatePermissions(userId: string, permissions: { resource: string; action: string; conditions?: Record<string, any> }[]): Promise<User | null> {
     try {
       return await this.update(userId, { permissions });
     } catch (error) {
@@ -113,7 +113,7 @@ export class UserModel extends BaseModel<User, CreateUser, UpdateUser> {
   /**
    * Change user role
    */
-  async changeRole(userId: string, newRole: string): Promise<User | null> {
+  async changeRole(userId: string, newRole: 'super_admin' | 'tenant_admin' | 'staff' | 'customer'): Promise<User | null> {
     try {
       return await this.update(userId, { role: newRole });
     } catch (error) {
@@ -159,13 +159,13 @@ export class UserModel extends BaseModel<User, CreateUser, UpdateUser> {
 
         if (options.limit) {
           query += ` LIMIT $${paramIndex}`;
-          params.push(options.limit);
+          params.push(String(options.limit));
           paramIndex++;
         }
 
         if (options.offset) {
           query += ` OFFSET $${paramIndex}`;
-          params.push(options.offset);
+          params.push(String(options.offset));
           paramIndex++;
         }
 
