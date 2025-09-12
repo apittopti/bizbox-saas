@@ -3,9 +3,9 @@
 name: Infrastructure Monitoring
 
 on:
-  schedule:
-    # Health checks every 15 minutes
-    - cron: '*/15 * * * *'
+  # Disabled scheduled runs until infrastructure is ready
+  # schedule:
+  #   - cron: '*/15 * * * *'  # Health checks every 15 minutes
   workflow_dispatch:
 
 jobs:

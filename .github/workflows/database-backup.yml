@@ -3,11 +3,10 @@
 name: Database Backup & Maintenance
 
 on:
-  schedule:
-    # Daily backup at 2 AM UTC
-    - cron: '0 2 * * *'
-    # Weekly maintenance at 3 AM UTC on Sunday
-    - cron: '0 3 * * 0'
+  # Disabled scheduled runs until infrastructure is ready
+  # schedule:
+  #   - cron: '0 2 * * *'  # Daily backup at 2 AM UTC  
+  #   - cron: '0 3 * * 0'  # Weekly maintenance at 3 AM UTC on Sunday
   workflow_dispatch:
     inputs:
       backup_type:
