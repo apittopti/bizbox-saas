@@ -9,7 +9,7 @@ COPY . .
 
 # Generate a partial monorepo with a pruned lockfile for a target workspace
 ARG APP_NAME
-RUN turbo prune ${APP_NAME} --docker
+RUN turbo prune @bizbox/app-${APP_NAME} --docker
 
 # Add lockfile and package.json's of isolated subworkspace
 FROM base AS installer
@@ -24,7 +24,7 @@ RUN pnpm install --frozen-lockfile
 
 # Build the project
 COPY --from=builder /app/out/full/ .
-RUN pnpm turbo run build --filter=${APP_NAME}
+RUN pnpm turbo run build --filter=@bizbox/app-${APP_NAME}
 
 FROM base AS runner
 WORKDIR /app
