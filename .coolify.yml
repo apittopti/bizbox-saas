@@ -31,9 +31,7 @@ services:
   landing:
     build:
       context: .
-      dockerfile: Dockerfile
-      args:
-        APP_NAME: landing
+      dockerfile: apps/landing/Dockerfile
     ports:
       - "3001:3000"
     environment:
@@ -52,9 +50,7 @@ services:
   admin:
     build:
       context: .
-      dockerfile: Dockerfile
-      args:
-        APP_NAME: admin
+      dockerfile: apps/admin/Dockerfile
     ports:
       - "3002:3000"
     environment:
@@ -73,9 +69,7 @@ services:
   builder:
     build:
       context: .
-      dockerfile: Dockerfile
-      args:
-        APP_NAME: builder
+      dockerfile: apps/builder/Dockerfile
     ports:
       - "3003:3000"
     environment:
@@ -94,9 +88,7 @@ services:
   customer:
     build:
       context: .
-      dockerfile: Dockerfile
-      args:
-        APP_NAME: customer
+      dockerfile: apps/customer/Dockerfile
     ports:
       - "3004:3000"
     environment:
@@ -113,9 +105,7 @@ services:
   tenant:
     build:
       context: .
-      dockerfile: Dockerfile
-      args:
-        APP_NAME: tenant
+      dockerfile: apps/tenant/Dockerfile
     ports:
       - "3005:3000"
     environment:
@@ -134,9 +124,7 @@ services:
   super-admin:
     build:
       context: .
-      dockerfile: Dockerfile
-      args:
-        APP_NAME: super-admin
+      dockerfile: apps/super-admin/Dockerfile
     ports:
       - "3006:3000"
     environment:
