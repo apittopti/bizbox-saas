@@ -70,7 +70,7 @@ export function createCorsMiddleware(options: CorsOptions = {}): UtilityMiddlewa
         if (requestOrigin && origin.includes(requestOrigin)) {
           res.setHeader('Access-Control-Allow-Origin', requestOrigin);
         }
-      } else if (origin !== false) {
+      } else if (origin !== false && typeof origin === 'string') {
         res.setHeader('Access-Control-Allow-Origin', origin);
       }
 
@@ -212,7 +212,7 @@ export function createLoggingMiddleware(options: LoggingOptions = {}): UtilityMi
 
           logger({ ...logData, response: 'END' });
         }
-        return originalEnd.call(this, chunk);
+        return originalEnd.call(this, chunk, encoding);
       };
 
       next();
@@ -555,7 +555,7 @@ export const middlewarePresets = {
 
   // Development API middleware stack
   development: composeMiddleware(
-    createCorsMiddleware({ origin: true }),
+    createCorsMiddleware({ origin: '*' }),
     createLoggingMiddleware({
       includeBody: true,
       includeHeaders: true,
@@ -565,9 +565,3 @@ export const middlewarePresets = {
   ),
 };
 
-export {
-  createTimeoutMiddleware,
-  createSizeLimitMiddleware,
-  composeMiddleware,
-  middlewarePresets,
-};

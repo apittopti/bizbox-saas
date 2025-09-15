@@ -1,4 +1,4 @@
-import { Router } from 'express'
+import { Router, Request, Response } from 'express'
 import { z } from 'zod'
 import crypto from 'crypto'
 import { webhookSystem } from './webhook-system'
@@ -24,7 +24,7 @@ router.post('/webhooks',
   requireAuth,
   requirePermission('webhooks:create'),
   validateRequest({ body: CreateWebhookSchema }),
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     try {
       const { url, events, secret } = req.body
       const tenantId = req.user.tenantId
@@ -35,6 +35,11 @@ router.post('/webhooks',
         events,
         secret: secret || crypto.randomBytes(32).toString('hex'),
         active: true,
+        retryConfig: {
+          maxRetries: 3,
+          backoffMultiplier: 2,
+          maxBackoffMs: 60000
+        }
       })
 
       res.status(201).json({
@@ -60,7 +65,7 @@ router.post('/webhooks',
 router.get('/webhooks',
   requireAuth,
   requirePermission('webhooks:read'),
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     try {
       const tenantId = req.user.tenantId
       const endpoints = await webhookSystem.getEndpointsByTenant(tenantId)
@@ -90,7 +95,7 @@ router.put('/webhooks/:id',
   requireAuth,
   requirePermission('webhooks:update'),
   validateRequest({ body: UpdateWebhookSchema }),
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     try {
       const { id } = req.params
       const updates = req.body
@@ -127,7 +132,7 @@ router.put('/webhooks/:id',
 router.delete('/webhooks/:id',
   requireAuth,
   requirePermission('webhooks:delete'),
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     try {
       const { id } = req.params
       const deleted = await webhookSystem.deleteEndpoint(id)
@@ -156,7 +161,7 @@ router.delete('/webhooks/:id',
 router.get('/webhooks/:id/deliveries',
   requireAuth,
   requirePermission('webhooks:read'),
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     try {
       const { id } = req.params
       const { limit = 50, offset = 0 } = req.query
@@ -183,7 +188,7 @@ router.get('/webhooks/:id/deliveries',
 router.get('/webhooks/deliveries/:deliveryId',
   requireAuth,
   requirePermission('webhooks:read'),
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     try {
       const { deliveryId } = req.params
       const delivery = await webhookSystem.getDeliveryStatus(deliveryId)
@@ -212,7 +217,7 @@ router.get('/webhooks/deliveries/:deliveryId',
 router.post('/webhooks/:id/test',
   requireAuth,
   requirePermission('webhooks:create'),
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     try {
       const { id } = req.params
       
@@ -235,7 +240,7 @@ router.post('/webhooks/:id/test',
 router.post('/webhooks/deliveries/:deliveryId/retry',
   requireAuth,
   requirePermission('webhooks:create'),
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     try {
       const { deliveryId } = req.params
       
