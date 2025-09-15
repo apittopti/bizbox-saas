@@ -14,21 +14,21 @@ export const timestampSchema = z.date();
 export const subscriptionPlanSchema = z.enum(['starter', 'professional', 'enterprise']);
 
 export const tenantSettingsSchema = z.object({
-  features: z.array(z.string()).default([]),
+  features: z.array(z.string()),
   limits: z.object({
-    users: z.number().min(1).default(5),
-    storage: z.number().min(100).default(1000), // MB
-    apiCalls: z.number().min(1000).default(10000), // per month
-  }).default({}),
-  active: z.boolean().default(true),
+    users: z.number().min(1),
+    storage: z.number().min(100), // MB
+    apiCalls: z.number().min(1000), // per month
+  }),
+  active: z.boolean(),
 });
 
 export const tenantSchema = z.object({
   id: uuidSchema,
   name: z.string().min(1, 'Tenant name is required').max(255),
   domain: z.string().regex(/^[a-z0-9-]+$/, 'Domain must contain only lowercase letters, numbers, and hyphens').optional().nullable(),
-  plan: subscriptionPlanSchema.default('starter'),
-  settings: tenantSettingsSchema.default({}),
+  plan: subscriptionPlanSchema,
+  settings: tenantSettingsSchema,
   createdAt: timestampSchema,
   updatedAt: timestampSchema,
 });
@@ -42,7 +42,7 @@ export const createTenantSchema = z.object({
 
 export const updateTenantSchema = z.object({
   name: z.string().min(1, 'Tenant name is required').max(255).optional(),
-  domain: z.string().regex(/^[a-z0-9-]+$/, 'Domain must contain only lowercase letters, numbers, and hyphens').optional().nullable().optional(),
+  domain: z.string().regex(/^[a-z0-9-]+$/, 'Domain must contain only lowercase letters, numbers, and hyphens').optional().nullable(),
   plan: subscriptionPlanSchema.optional(),
   settings: z.object({
     features: z.array(z.string()).optional(),
@@ -124,10 +124,10 @@ export const contactSchema = z.object({
 
 export const brandingSchema = z.object({
   logo: z.string().url().optional(),
-  primaryColor: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color format').default('#000000'),
-  secondaryColor: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color format').default('#FFFFFF'),
-  fontFamily: z.string().default('Inter'),
-  theme: z.enum(['light', 'dark']).default('light'),
+  primaryColor: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color format'),
+  secondaryColor: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color format'),
+  fontFamily: z.string(),
+  theme: z.enum(['light', 'dark']),
 });
 
 export const socialMediaSchema = z.object({
@@ -142,11 +142,11 @@ export const socialMediaSchema = z.object({
 export const legalDocumentSchema = z.object({
   type: z.enum(['terms', 'privacy', 'cookies']),
   content: z.string().min(1, 'Document content is required'),
-  version: z.string().default('1.0'),
-  updatedAt: timestampSchema.default(() => new Date()),
+  version: z.string(),
+  updatedAt: timestampSchema,
 });
 
-export const legalDocumentsSchema = z.array(legalDocumentSchema).default([]);
+export const legalDocumentsSchema = z.array(legalDocumentSchema);
 
 // UK business registration schema
 export const ukBusinessRegistrationSchema = z.object({
