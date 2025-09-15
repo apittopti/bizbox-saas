@@ -36,11 +36,24 @@ export const tenantSchema = z.object({
 export const createTenantSchema = z.object({
   name: z.string().min(1, 'Tenant name is required').max(255),
   domain: z.string().regex(/^[a-z0-9-]+$/, 'Domain must contain only lowercase letters, numbers, and hyphens').optional(),
-  plan: subscriptionPlanSchema.default('starter'),
-  settings: tenantSettingsSchema.optional().default({}),
+  plan: subscriptionPlanSchema.optional(),
+  settings: tenantSettingsSchema.optional(),
 });
 
-export const updateTenantSchema = createTenantSchema.partial();
+export const updateTenantSchema = z.object({
+  name: z.string().min(1, 'Tenant name is required').max(255).optional(),
+  domain: z.string().regex(/^[a-z0-9-]+$/, 'Domain must contain only lowercase letters, numbers, and hyphens').optional().nullable().optional(),
+  plan: subscriptionPlanSchema.optional(),
+  settings: z.object({
+    features: z.array(z.string()).optional(),
+    limits: z.object({
+      users: z.number().min(1).optional(),
+      storage: z.number().min(100).optional(),
+      apiCalls: z.number().min(1000).optional(),
+    }).optional(),
+    active: z.boolean().optional(),
+  }).optional(),
+});
 
 // User schemas with enhanced validation
 export const userRoleSchema = z.enum(['super_admin', 'tenant_admin', 'staff', 'customer']);
@@ -80,15 +93,15 @@ export const createUserSchema = z.object({
   tenantId: uuidSchema,
   email: emailSchema,
   password: z.string().min(8).optional(),
-  role: userRoleSchema.default('customer'),
+  role: userRoleSchema.optional(),
   profile: userProfileSchema.partial().optional(),
-  permissions: userPermissionsSchema.optional().default([]),
+  permissions: userPermissionsSchema.optional(),
 });
 
 export const updateUserSchema = z.object({
   email: emailSchema.optional(),
   role: userRoleSchema.optional(),
-  profile: userProfileSchema.optional(),
+  profile: userProfileSchema.partial().optional(),
   permissions: userPermissionsSchema.optional(),
 });
 
@@ -162,15 +175,38 @@ export const createBusinessSchema = z.object({
   tenantId: uuidSchema,
   name: z.string().min(1, 'Business name is required').max(255),
   description: z.string().max(1000).optional(),
-  address: addressSchema,
+  address: z.object({
+    line1: z.string().min(1, 'Address line 1 is required').max(255),
+    line2: z.string().max(255).optional(),
+    city: z.string().min(1, 'City is required').max(100),
+    county: z.string().min(1, 'County is required').max(100),
+    postcode: z.string().regex(ukPostcodeRegex, 'Invalid UK postcode format'),
+    country: z.string().optional(),
+  }),
   contact: contactSchema,
-  branding: brandingSchema.optional().default({}),
-  socialMedia: socialMediaSchema.optional().default({}),
-  legalDocuments: legalDocumentsSchema.optional().default([]),
+  branding: brandingSchema.optional(),
+  socialMedia: socialMediaSchema.optional(),
+  legalDocuments: legalDocumentsSchema.optional(),
   ukBusinessRegistration: ukBusinessRegistrationSchema.optional(),
 });
 
-export const updateBusinessSchema = createBusinessSchema.omit({ tenantId: true }).partial();
+export const updateBusinessSchema = z.object({
+  name: z.string().min(1, 'Business name is required').max(255).optional(),
+  description: z.string().max(1000).optional().nullable().optional(),
+  address: z.object({
+    line1: z.string().min(1, 'Address line 1 is required').max(255).optional(),
+    line2: z.string().max(255).optional(),
+    city: z.string().min(1, 'City is required').max(100).optional(),
+    county: z.string().min(1, 'County is required').max(100).optional(),
+    postcode: z.string().regex(ukPostcodeRegex, 'Invalid UK postcode format').optional(),
+    country: z.string().optional(),
+  }).optional(),
+  contact: contactSchema.partial().optional(),
+  branding: brandingSchema.partial().optional(),
+  socialMedia: socialMediaSchema.partial().optional(),
+  legalDocuments: legalDocumentsSchema.optional(),
+  ukBusinessRegistration: ukBusinessRegistrationSchema.optional(),
+});
 
 // Export types
 export type Tenant = z.infer<typeof tenantSchema>;

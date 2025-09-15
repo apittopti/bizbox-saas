@@ -179,7 +179,7 @@ interface ThemeContextType {
 
 const ThemeContext = React.createContext<ThemeContextType | undefined>(undefined)
 
-function useTheme() {
+export function useTheme() {
   const context = React.useContext(ThemeContext)
   if (!context) {
     throw new Error('useTheme must be used within a ThemeProvider')
@@ -193,7 +193,7 @@ interface ThemeProviderProps {
   storageKey?: string
 }
 
-function ThemeProvider({ 
+export function ThemeProvider({ 
   children, 
   defaultTheme: initialTheme = defaultTheme,
   storageKey = 'bizbox-theme'

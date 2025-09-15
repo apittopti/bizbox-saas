@@ -255,7 +255,7 @@ export class BusinessModel extends BaseModel<Business, CreateBusiness, UpdateBus
 
       requiredFields.forEach(field => {
         const fieldParts = field.split('.');
-        let value = business;
+        let value: any = business;
         
         for (const part of fieldParts) {
           value = value?.[part];
