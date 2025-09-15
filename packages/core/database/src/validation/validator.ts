@@ -119,7 +119,10 @@ export class DataValidator {
     }
 
     // Create a partial schema that only validates provided fields
-    const partialSchema = schema.partial();
+    // Use schema as-is if it doesn't have partial method
+    const partialSchema = 'partial' in schema && typeof (schema as any).partial === 'function' 
+      ? (schema as any).partial() 
+      : schema;
     return this.validate(partialSchema, data);
   }
 

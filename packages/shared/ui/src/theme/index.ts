@@ -10,6 +10,7 @@ export {
   validateTheme
 } from './theme-engine';
 
+// Re-export from theme-provider (these override the duplicates from theme-engine)
 export {
   ThemeProvider,
   useTheme

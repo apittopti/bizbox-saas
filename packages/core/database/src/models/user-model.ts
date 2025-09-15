@@ -20,6 +20,20 @@ export class UserModel extends BaseModel<User, CreateUser, UpdateUser> {
   protected updateSchema = updateUserSchema;
 
   /**
+   * Transform database result to typed User
+   */
+  private transformUser(dbUser: any): User {
+    if (!dbUser) return null as any;
+    
+    return {
+      ...dbUser,
+      role: dbUser.role as 'super_admin' | 'tenant_admin' | 'staff' | 'customer',
+      profile: typeof dbUser.profile === 'object' ? dbUser.profile : {},
+      permissions: Array.isArray(dbUser.permissions) ? dbUser.permissions : []
+    };
+  }
+
+  /**
    * Find user by email within tenant
    */
   async findByEmail(email: string): Promise<User | null> {
@@ -29,7 +43,7 @@ export class UserModel extends BaseModel<User, CreateUser, UpdateUser> {
         limit: 1
       });
 
-      return results[0] || null;
+      return this.transformUser(results[0]) || null;
     } catch (error) {
       console.error('Error finding user by email:', error);
       throw error;
@@ -67,9 +81,10 @@ export class UserModel extends BaseModel<User, CreateUser, UpdateUser> {
    */
   async findByRole(role: 'super_admin' | 'tenant_admin' | 'staff' | 'customer'): Promise<User[]> {
     try {
-      return await this.queryBuilder.select(this.table, {
+      const results = await this.queryBuilder.select(this.table, {
         where: eq(this.table.role, role)
       });
+      return results.map(user => this.transformUser(user));
     } catch (error) {
       console.error('Error finding users by role:', error);
       throw error;
@@ -81,7 +96,7 @@ export class UserModel extends BaseModel<User, CreateUser, UpdateUser> {
    */
   async updatePermissions(userId: string, permissions: { resource: string; action: string; conditions?: Record<string, any> }[]): Promise<User | null> {
     try {
-      return await this.update(userId, { permissions });
+      return await this.update(userId, { permissions } as any);
     } catch (error) {
       console.error('Error updating user permissions:', error);
       throw error;
@@ -128,7 +143,7 @@ export class UserModel extends BaseModel<User, CreateUser, UpdateUser> {
   async getUsersWithRelations(options: {
     includeProfile?: boolean;
     includePermissions?: boolean;
-    role?: string;
+    role?: 'super_admin' | 'tenant_admin' | 'staff' | 'customer';
     limit?: number;
     offset?: number;
   } = {}): Promise<User[]> {
@@ -179,12 +194,8 @@ export class UserModel extends BaseModel<User, CreateUser, UpdateUser> {
           profile: row.profile,
           permissions: row.permissions,
           createdAt: row.created_at,
-          updatedAt: row.updated_at,
-          tenant: {
-            name: row.tenant_name,
-            domain: row.tenant_domain
-          }
-        }));
+          updatedAt: row.updated_at
+        }) as User);
       });
     } catch (error) {
       console.error('Error getting users with relations:', error);

@@ -179,7 +179,7 @@ interface ThemeContextType {
 
 const ThemeContext = React.createContext<ThemeContextType | undefined>(undefined)
 
-export function useTheme() {
+function useTheme() {
   const context = React.useContext(ThemeContext)
   if (!context) {
     throw new Error('useTheme must be used within a ThemeProvider')
@@ -193,7 +193,7 @@ interface ThemeProviderProps {
   storageKey?: string
 }
 
-export function ThemeProvider({ 
+function ThemeProvider({ 
   children, 
   defaultTheme: initialTheme = defaultTheme,
   storageKey = 'bizbox-theme'
@@ -396,4 +396,4 @@ export function validateTheme(theme: Partial<Theme>): string[] {
   return errors
 }
 
-// Types are already exported above
+// All types are exported directly above, no need for duplicate exports
