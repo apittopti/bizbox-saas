@@ -1,11 +1,12 @@
 import { Router } from 'express';
+import type { Router as ExpressRouter } from 'express';
 import { z } from 'zod';
 import { paymentManager } from '../payment-manager';
 import { paymentWebhookIntegration } from '../webhook-integration';
 import { validateTenantAccess } from '@bizbox/core/auth';
 import { validateInput } from '@bizbox/core/api';
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 // Validation schemas
 const processRefundSchema = z.object({

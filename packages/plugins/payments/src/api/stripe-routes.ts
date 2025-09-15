@@ -1,10 +1,11 @@
 import { Router } from 'express';
+import type { Router as ExpressRouter } from 'express';
 import { z } from 'zod';
 import { stripeIntegration } from '../stripe-integration';
 import { validateTenantAccess } from '@bizbox/core/auth';
 import { validateInput } from '@bizbox/core/api';
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 // Validation schemas
 const createConnectedAccountSchema = z.object({
