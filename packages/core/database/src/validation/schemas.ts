@@ -112,7 +112,7 @@ export const addressSchema = z.object({
   city: z.string().min(1, 'City is required').max(100),
   county: z.string().min(1, 'County is required').max(100),
   postcode: z.string().regex(ukPostcodeRegex, 'Invalid UK postcode format'),
-  country: z.string().default('United Kingdom'),
+  country: z.string(),
 });
 
 export const contactSchema = z.object({
@@ -154,7 +154,14 @@ export const ukBusinessRegistrationSchema = z.object({
   vatNumber: z.string().regex(/^GB\d{9}$/, 'Invalid UK VAT number format').optional(),
   businessType: z.enum(['sole_trader', 'partnership', 'limited_company', 'llp', 'charity', 'other']),
   incorporationDate: z.date().optional(),
-  registeredAddress: addressSchema.optional(),
+  registeredAddress: z.object({
+    line1: z.string().min(1, 'Address line 1 is required').max(255),
+    line2: z.string().max(255).optional(),
+    city: z.string().min(1, 'City is required').max(100),
+    county: z.string().min(1, 'County is required').max(100),
+    postcode: z.string().regex(ukPostcodeRegex, 'Invalid UK postcode format'),
+    country: z.string(),
+  }).optional(),
 });
 
 export const businessSchema = z.object({
@@ -163,9 +170,9 @@ export const businessSchema = z.object({
   description: z.string().max(1000).optional().nullable(),
   address: addressSchema,
   contact: contactSchema,
-  branding: brandingSchema.default({}),
-  socialMedia: socialMediaSchema.default({}),
-  legalDocuments: legalDocumentsSchema.default([]),
+  branding: brandingSchema,
+  socialMedia: socialMediaSchema,
+  legalDocuments: legalDocumentsSchema,
   ukBusinessRegistration: ukBusinessRegistrationSchema.optional(),
   createdAt: timestampSchema,
   updatedAt: timestampSchema,
@@ -192,7 +199,7 @@ export const createBusinessSchema = z.object({
 
 export const updateBusinessSchema = z.object({
   name: z.string().min(1, 'Business name is required').max(255).optional(),
-  description: z.string().max(1000).optional().nullable().optional(),
+  description: z.string().max(1000).nullable().optional(),
   address: z.object({
     line1: z.string().min(1, 'Address line 1 is required').max(255).optional(),
     line2: z.string().max(255).optional(),
