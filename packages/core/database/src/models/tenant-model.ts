@@ -115,7 +115,7 @@ export class TenantModel extends BaseModel<Tenant, CreateTenant, UpdateTenant> {
         ...settings
       };
 
-      return await this.update(tenantId, { settings: mergedSettings });
+      return await this.update(tenantId, { settings: mergedSettings } as UpdateTenant);
     } catch (error) {
       console.error('Error updating tenant settings:', error);
       throw error;
@@ -157,7 +157,7 @@ export class TenantModel extends BaseModel<Tenant, CreateTenant, UpdateTenant> {
   /**
    * Override base methods to handle tenant-specific logic
    */
-  async findById(id: string, options = {}): Promise<Tenant | null> {
+  async findById(id: string, options: { skipAudit?: boolean } = {}): Promise<Tenant | null> {
     return await withClient(async (client) => {
       const result = await client.query(
         'SELECT * FROM tenants WHERE id = $1 LIMIT 1',
@@ -197,7 +197,7 @@ export class TenantModel extends BaseModel<Tenant, CreateTenant, UpdateTenant> {
     });
   }
 
-  async create(data: CreateTenant, options = {}): Promise<Tenant> {
+  async create(data: CreateTenant, options: { skipAudit?: boolean } = {}): Promise<Tenant> {
     // Validate domain availability
     if (data.domain && !(await this.isDomainAvailable(data.domain))) {
       throw new Error(`Domain '${data.domain}' is already taken`);

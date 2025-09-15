@@ -21,6 +21,11 @@ export function getCurrentTenantId(): string {
   return context.tenantId;
 }
 
+export function setCurrentTenantId(tenantId: string): void {
+  const context: TenantContext = { tenantId };
+  tenantStorage.enterWith(context);
+}
+
 export async function withTenantContext<T>(
   context: TenantContext,
   callback: () => Promise<T>

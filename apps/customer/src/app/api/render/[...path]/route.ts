@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import React from 'react';
+import { renderToString } from 'react-dom/server';
 import { TenantResolver } from '../../../../lib/tenant-resolver';
 import { ComponentRenderer, PageData } from '../../../../lib/component-renderer';
 import { ThemeInjector } from '../../../../lib/theme-injector';

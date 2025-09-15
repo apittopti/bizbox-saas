@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -110,9 +110,9 @@ export default function BusinessTypePage() {
   };
 
   // Track signup start when component mounts
-  useState(() => {
+  useEffect(() => {
     trackSignupStart(selectedPlan || undefined);
-  });
+  }, [selectedPlan]);
 
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4">

@@ -33,7 +33,7 @@ export async function middleware(request: NextRequest) {
   
   // Skip middleware for API routes (except tenant resolution), static files, and Next.js internals
   if (
-    pathname.startsWith('/api/') && !pathname.startsWith('/api/tenant/') ||
+    (pathname.startsWith('/api/') && !pathname.startsWith('/api/tenant/')) ||
     pathname.startsWith('/_next/') ||
     pathname.startsWith('/favicon.ico') ||
     pathname.includes('.')

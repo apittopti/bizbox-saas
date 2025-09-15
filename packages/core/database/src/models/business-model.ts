@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { BaseModel } from './base-model';
+import { eq } from 'drizzle-orm';
+import { BaseModel, type ModelOptions } from './base-model';
 import { businesses } from '../schema/businesses';
 import { 
   businessSchema, 
@@ -26,11 +27,11 @@ export class BusinessModel extends BaseModel<Business, CreateBusiness, UpdateBus
     try {
       const tenantId = getCurrentTenantId();
       const results = await this.queryBuilder.select(this.table, {
-        where: this.table.tenantId.eq(tenantId),
+        where: eq(this.table.tenantId, tenantId),
         limit: 1
       });
 
-      return results[0] || null;
+      return (results[0] as Business) || null;
     } catch (error) {
       console.error('Error getting business for tenant:', error);
       throw error;
@@ -40,7 +41,7 @@ export class BusinessModel extends BaseModel<Business, CreateBusiness, UpdateBus
   /**
    * Update business address
    */
-  async updateAddress(tenantId: string, address: Record<string, any>): Promise<Business | null> {
+  async updateAddress(tenantId: string, address: Partial<Record<string, any>>): Promise<Business | null> {
     try {
       const existing = await this.findByTenantId(tenantId, { skipAudit: true });
       if (!existing) {
@@ -52,7 +53,7 @@ export class BusinessModel extends BaseModel<Business, CreateBusiness, UpdateBus
         ...address
       };
 
-      return await this.update(tenantId, { address: mergedAddress });
+      return await this.update(tenantId, { address: mergedAddress } as UpdateBusiness);
     } catch (error) {
       console.error('Error updating business address:', error);
       throw error;
@@ -62,7 +63,7 @@ export class BusinessModel extends BaseModel<Business, CreateBusiness, UpdateBus
   /**
    * Update business contact information
    */
-  async updateContact(tenantId: string, contact: Record<string, any>): Promise<Business | null> {
+  async updateContact(tenantId: string, contact: Partial<Record<string, any>>): Promise<Business | null> {
     try {
       const existing = await this.findByTenantId(tenantId, { skipAudit: true });
       if (!existing) {
@@ -74,7 +75,7 @@ export class BusinessModel extends BaseModel<Business, CreateBusiness, UpdateBus
         ...contact
       };
 
-      return await this.update(tenantId, { contact: mergedContact });
+      return await this.update(tenantId, { contact: mergedContact } as UpdateBusiness);
     } catch (error) {
       console.error('Error updating business contact:', error);
       throw error;
@@ -84,7 +85,7 @@ export class BusinessModel extends BaseModel<Business, CreateBusiness, UpdateBus
   /**
    * Update business branding
    */
-  async updateBranding(tenantId: string, branding: Record<string, any>): Promise<Business | null> {
+  async updateBranding(tenantId: string, branding: Partial<Record<string, any>>): Promise<Business | null> {
     try {
       const existing = await this.findByTenantId(tenantId, { skipAudit: true });
       if (!existing) {
@@ -96,7 +97,7 @@ export class BusinessModel extends BaseModel<Business, CreateBusiness, UpdateBus
         ...branding
       };
 
-      return await this.update(tenantId, { branding: mergedBranding });
+      return await this.update(tenantId, { branding: mergedBranding } as UpdateBusiness);
     } catch (error) {
       console.error('Error updating business branding:', error);
       throw error;
@@ -106,7 +107,7 @@ export class BusinessModel extends BaseModel<Business, CreateBusiness, UpdateBus
   /**
    * Update social media links
    */
-  async updateSocialMedia(tenantId: string, socialMedia: Record<string, any>): Promise<Business | null> {
+  async updateSocialMedia(tenantId: string, socialMedia: Partial<Record<string, any>>): Promise<Business | null> {
     try {
       const existing = await this.findByTenantId(tenantId, { skipAudit: true });
       if (!existing) {
@@ -118,7 +119,7 @@ export class BusinessModel extends BaseModel<Business, CreateBusiness, UpdateBus
         ...socialMedia
       };
 
-      return await this.update(tenantId, { socialMedia: mergedSocialMedia });
+      return await this.update(tenantId, { socialMedia: mergedSocialMedia } as UpdateBusiness);
     } catch (error) {
       console.error('Error updating business social media:', error);
       throw error;
@@ -128,7 +129,7 @@ export class BusinessModel extends BaseModel<Business, CreateBusiness, UpdateBus
   /**
    * Update legal documents
    */
-  async updateLegalDocuments(tenantId: string, legalDocuments: Record<string, any>): Promise<Business | null> {
+  async updateLegalDocuments(tenantId: string, legalDocuments: Partial<Record<string, any>>): Promise<Business | null> {
     try {
       const existing = await this.findByTenantId(tenantId, { skipAudit: true });
       if (!existing) {
@@ -140,7 +141,7 @@ export class BusinessModel extends BaseModel<Business, CreateBusiness, UpdateBus
         ...legalDocuments
       };
 
-      return await this.update(tenantId, { legalDocuments: mergedLegalDocuments });
+      return await this.update(tenantId, { legalDocuments: mergedLegalDocuments } as UpdateBusiness);
     } catch (error) {
       console.error('Error updating business legal documents:', error);
       throw error;
@@ -150,7 +151,7 @@ export class BusinessModel extends BaseModel<Business, CreateBusiness, UpdateBus
   /**
    * Find business by tenant ID (businesses use tenantId as primary key)
    */
-  async findByTenantId(tenantId: string, options = {}): Promise<Business | null> {
+  async findByTenantId(tenantId: string, options: { skipAudit?: boolean } = {}): Promise<Business | null> {
     try {
       return await withClient(async (client) => {
         await client.query('SELECT set_config($1, $2, true)', ['app.current_tenant', tenantId]);
@@ -283,11 +284,11 @@ export class BusinessModel extends BaseModel<Business, CreateBusiness, UpdateBus
   /**
    * Override base methods to handle tenant ID as primary key
    */
-  async findById(tenantId: string, options = {}): Promise<Business | null> {
+  async findById(tenantId: string, options: { skipAudit?: boolean } = {}): Promise<Business | null> {
     return await this.findByTenantId(tenantId, options);
   }
 
-  async update(tenantId: string, data: UpdateBusiness, options = {}): Promise<Business | null> {
+  async update(tenantId: string, data: UpdateBusiness, options: { skipValidation?: boolean; skipAudit?: boolean } = {}): Promise<Business | null> {
     try {
       // Get existing record for audit trail
       const existing = await this.findByTenantId(tenantId, { skipAudit: true });
@@ -339,7 +340,7 @@ export class BusinessModel extends BaseModel<Business, CreateBusiness, UpdateBus
     }
   }
 
-  async delete(tenantId: string, options = {}): Promise<boolean> {
+  async delete(tenantId: string, options: { skipAudit?: boolean } = {}): Promise<boolean> {
     try {
       // Get existing record for audit trail
       const existing = await this.findByTenantId(tenantId, { skipAudit: true });

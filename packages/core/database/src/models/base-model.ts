@@ -10,6 +10,17 @@ export interface ModelOptions {
   tenantColumn?: string;
 }
 
+export interface FindAllOptions extends ModelOptions {
+  where?: any;
+  limit?: number;
+  offset?: number;
+}
+
+export interface CountOptions {
+  where?: any;
+  tenantColumn?: string;
+}
+
 export abstract class BaseModel<T, CreateT, UpdateT> {
   protected abstract tableName: string;
   protected abstract table: any;
@@ -36,7 +47,7 @@ export abstract class BaseModel<T, CreateT, UpdateT> {
         await auditLogger.logAccess(this.tableName, id);
       }
 
-      return record;
+      return record as T;
     } catch (error) {
       console.error(`Error finding ${this.tableName} by ID:`, error);
       throw error;
@@ -46,13 +57,7 @@ export abstract class BaseModel<T, CreateT, UpdateT> {
   /**
    * Find all records with optional filtering
    */
-  async findAll(options: {
-    where?: any;
-    limit?: number;
-    offset?: number;
-    skipAudit?: boolean;
-    tenantColumn?: string;
-  } = {}): Promise<T[]> {
+  async findAll(options: FindAllOptions = {}): Promise<T[]> {
     try {
       const results = await this.queryBuilder.select(this.table, {
         where: options.where,
@@ -65,7 +70,7 @@ export abstract class BaseModel<T, CreateT, UpdateT> {
         await auditLogger.logAccess(this.tableName);
       }
 
-      return results;
+      return results as T[];
     } catch (error) {
       console.error(`Error finding ${this.tableName} records:`, error);
       throw error;
@@ -93,7 +98,8 @@ export abstract class BaseModel<T, CreateT, UpdateT> {
         options.tenantColumn || this.tenantColumn
       );
 
-      const created = result[0] as T;
+      const records = Array.isArray(result) ? result : [result];
+      const created = records[0] as T;
 
       // Log audit trail
       if (!options.skipAudit) {
@@ -197,10 +203,7 @@ export abstract class BaseModel<T, CreateT, UpdateT> {
   /**
    * Count records with optional filtering
    */
-  async count(options: {
-    where?: any;
-    tenantColumn?: string;
-  } = {}): Promise<number> {
+  async count(options: CountOptions = {}): Promise<number> {
     try {
       const tenantId = getCurrentTenantId();
       const results = await this.queryBuilder.executeWithTenantContext(
@@ -208,7 +211,7 @@ export abstract class BaseModel<T, CreateT, UpdateT> {
         [tenantId]
       );
 
-      return parseInt(results[0]?.count || '0', 10);
+      return parseInt((results[0] as any)?.count || '0', 10);
     } catch (error) {
       console.error(`Error counting ${this.tableName} records:`, error);
       throw error;

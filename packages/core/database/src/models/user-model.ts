@@ -96,7 +96,7 @@ export class UserModel extends BaseModel<User, CreateUser, UpdateUser> {
    */
   async updatePermissions(userId: string, permissions: { resource: string; action: string; conditions?: Record<string, any> }[]): Promise<User | null> {
     try {
-      return await this.update(userId, { permissions } as any);
+      return await this.update(userId, { permissions } as UpdateUser);
     } catch (error) {
       console.error('Error updating user permissions:', error);
       throw error;
@@ -118,7 +118,7 @@ export class UserModel extends BaseModel<User, CreateUser, UpdateUser> {
         ...profile
       };
 
-      return await this.update(userId, { profile: mergedProfile });
+      return await this.update(userId, { profile: mergedProfile } as UpdateUser);
     } catch (error) {
       console.error('Error updating user profile:', error);
       throw error;
@@ -130,7 +130,7 @@ export class UserModel extends BaseModel<User, CreateUser, UpdateUser> {
    */
   async changeRole(userId: string, newRole: 'super_admin' | 'tenant_admin' | 'staff' | 'customer'): Promise<User | null> {
     try {
-      return await this.update(userId, { role: newRole });
+      return await this.update(userId, { role: newRole } as UpdateUser);
     } catch (error) {
       console.error('Error changing user role:', error);
       throw error;
@@ -238,7 +238,7 @@ export class UserModel extends BaseModel<User, CreateUser, UpdateUser> {
   /**
    * Override create to validate email uniqueness
    */
-  async create(data: CreateUser, options = {}): Promise<User> {
+  async create(data: CreateUser, options: { skipValidation?: boolean; skipAudit?: boolean } = {}): Promise<User> {
     // Validate email availability
     if (!(await this.isEmailAvailable(data.email))) {
       throw new Error(`Email '${data.email}' is already registered in this tenant`);

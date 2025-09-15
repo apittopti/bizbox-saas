@@ -41,7 +41,7 @@ export class TenantResolver {
    * Cached tenant resolution to avoid multiple API calls per request
    */
   static resolveTenant = cache(async (): Promise<TenantInfo | null> => {
-    const domainInfo = this.parseDomainInfo();
+    const domainInfo = TenantResolver.parseDomainInfo();
     
     if (!domainInfo) {
       return null;
@@ -172,7 +172,7 @@ export class TenantResolver {
    * Resolve canonical URL for a path
    */
   static getCanonicalUrl(tenant: TenantInfo, path: string): string {
-    const domainInfo = this.parseDomainInfo();
+    const domainInfo = TenantResolver.parseDomainInfo();
     if (!domainInfo) {
       return `https://${tenant.domain}${path}`;
     }
@@ -191,7 +191,7 @@ export class TenantResolver {
    * Check if current request is from the canonical domain
    */
   static isCanonicalDomain(tenant: TenantInfo): boolean {
-    const domainInfo = this.parseDomainInfo();
+    const domainInfo = TenantResolver.parseDomainInfo();
     if (!domainInfo) {
       return false;
     }

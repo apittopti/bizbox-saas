@@ -1,13 +1,15 @@
 'use client';
 
-import { redirect } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 export default function SignupRedirect() {
+  const router = useRouter();
+  
   useEffect(() => {
     // Redirect to business type selection
-    redirect('/signup/business-type');
-  }, []);
+    router.push('/signup/business-type');
+  }, [router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center">

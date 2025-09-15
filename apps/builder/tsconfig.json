@@ -1,0 +1,26 @@
+{
+  "extends": "@bizbox/typescript-config/nextjs.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@bizbox/core-framework": ["../../packages/core/framework/src"],
+      "@bizbox/core-database": ["../../packages/core/database/src"],
+      "@bizbox/core-auth": ["../../packages/core/auth/src"],
+      "@bizbox/core-api": ["../../packages/core/api/src"],
+      "@bizbox/plugin-website-builder": ["../../packages/plugins/website-builder/src"],
+      "@bizbox/plugin-media-manager": ["../../packages/plugins/media-manager/src"],
+      "@bizbox/shared-types": ["../../packages/shared/types/src"],
+      "@bizbox/shared-ui": ["../../packages/shared/ui/src"],
+      "@bizbox/shared-utils": ["../../packages/shared/utils/src"],
+      "@bizbox/shared-hooks": ["../../packages/shared/hooks/src"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": ["node_modules"]
+}
