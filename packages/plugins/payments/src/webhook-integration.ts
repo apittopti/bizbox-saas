@@ -1,4 +1,4 @@
-import { WebhookSystem } from '@bizbox/core/api/webhooks/webhook-system';
+import { WebhookSystem } from '@bizbox/core-api';
 
 export interface PaymentWebhookEvent {
   type: string;

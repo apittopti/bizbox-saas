@@ -1,21 +1,40 @@
-import { BasePlugin } from '@bizbox/core/framework';
+import { BasePlugin } from '@bizbox/core-framework';
+import type { PluginContext, PluginManifest } from '@bizbox/core-framework';
 import { stripeIntegration } from './stripe-integration';
 import { paymentManager } from './payment-manager';
 import { paymentWebhookIntegration } from './webhook-integration';
 import stripeRoutes from './api/stripe-routes';
 import paymentManagementRoutes from './api/payment-management-routes';
 
+const manifest: PluginManifest = {
+  id: 'payments',
+  name: 'Payments Plugin',
+  version: '1.0.0',
+  description: 'Stripe payment integration for BizBox platform',
+  dependencies: {},
+  routes: [
+    { path: '/api/payments/stripe', router: stripeRoutes },
+    { path: '/api/payments/management', router: paymentManagementRoutes }
+  ]
+};
+
 export class PaymentsPlugin extends BasePlugin {
-  name = 'payments';
-  version = '1.0.0';
+  private routeHandlers: Map<string, any> = new Map();
+  private webhookHandlers: Map<string, (payload: any, signature: string) => Promise<any>> = new Map();
 
-  async initialize() {
-    // Register API routes
-    this.registerRoutes('/api/payments/stripe', stripeRoutes);
-    this.registerRoutes('/api/payments/management', paymentManagementRoutes);
+  constructor() {
+    super(manifest);
+  }
 
-    // Register webhook handlers
-    this.registerWebhookHandler('stripe', async (payload, signature) => {
+  async initialize(context: PluginContext) {
+    this.context = context;
+    
+    // Store route handlers for later use
+    this.routeHandlers.set('/api/payments/stripe', stripeRoutes);
+    this.routeHandlers.set('/api/payments/management', paymentManagementRoutes);
+
+    // Store webhook handler
+    this.webhookHandlers.set('stripe', async (payload: any, signature: string) => {
       const result = await stripeIntegration.handleWebhook(payload, signature);
       
       // Process webhooks through the webhook integration system
@@ -29,18 +48,29 @@ export class PaymentsPlugin extends BasePlugin {
     // Register payment webhook events
     paymentWebhookIntegration.registerPaymentWebhookEvents();
 
-    // Register event listeners
-    this.on('booking.created', this.handleBookingCreated.bind(this));
-    this.on('subscription.payment_due', this.handleSubscriptionPaymentDue.bind(this));
-    this.on('payment.failed', this.handlePaymentFailed.bind(this));
-    this.on('refund.requested', this.handleRefundRequested.bind(this));
+    // Subscribe to events using the event bus
+    this.subscribeToEvent('booking.created', this.handleBookingCreated.bind(this));
+    this.subscribeToEvent('subscription.payment_due', this.handleSubscriptionPaymentDue.bind(this));
+    this.subscribeToEvent('payment.failed', this.handlePaymentFailed.bind(this));
+    this.subscribeToEvent('refund.requested', this.handleRefundRequested.bind(this));
 
     console.log('Payments plugin initialized successfully');
   }
 
-  async cleanup() {
+  async destroy() {
     // Cleanup resources if needed
-    console.log('Payments plugin cleaned up');
+    this.routeHandlers.clear();
+    this.webhookHandlers.clear();
+    console.log('Payments plugin destroyed');
+  }
+
+  // Helper methods for accessing stored handlers
+  registerRoutes(path: string, router: any) {
+    this.routeHandlers.set(path, router);
+  }
+
+  registerWebhookHandler(name: string, handler: (payload: any, signature: string) => Promise<any>) {
+    this.webhookHandlers.set(name, handler);
   }
 
   private async handleBookingCreated(data: any) {
