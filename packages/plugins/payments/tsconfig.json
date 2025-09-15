@@ -14,15 +14,11 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "composite": true,
-    "baseUrl": ".",
-    "paths": {
-      "@bizbox/core/*": ["../../core/*/src"],
-      "@bizbox/shared/*": ["../../shared/*/src"]
-    }
+    "composite": true
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "src/types/**/*.d.ts"
   ],
   "exclude": [
     "dist",
