@@ -100,7 +100,7 @@ export class AutoTenantInjection {
         res.status(400).json({
           error: {
             code: 'TENANT_CONTEXT_REQUIRED',
-            message: error.message,
+            message: (error as Error).message,
             timestamp: new Date().toISOString()
           }
         });

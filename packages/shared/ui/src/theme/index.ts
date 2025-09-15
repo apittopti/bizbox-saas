@@ -1,6 +1,20 @@
 // Theme system exports
-export * from './theme-engine';
+export {
+  Theme,
+  ThemeColors,
+  ThemeTypography,
+  ThemeSpacing,
+  ThemeBorderRadius,
+  defaultTheme,
+  ThemeBuilder,
+  validateTheme
+} from './theme-engine';
+
+export {
+  ThemeProvider,
+  useTheme
+} from './theme-provider';
+
 export * from './theme-customizer';
-export * from './theme-provider';
 export * from './theme-config';
 export * from './accessibility-validator';
